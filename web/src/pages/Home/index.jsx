@@ -118,7 +118,6 @@ const Home = () => {
   const [noticeVisible, setNoticeVisible] = useState(false);
   const [ctaOpen, setCtaOpen] = useState(false);
   const [endpointIndex, setEndpointIndex] = useState(0);
-  const [heroMaskActive, setHeroMaskActive] = useState(false);
 
   const status = statusState?.status || {};
   const docsLink = status.docs_link || '';
@@ -203,6 +202,7 @@ const Home = () => {
     [isMobile, quickLinks],
   );
 
+
   const postIframeThemeAndLang = () => {
     const iframe = iframeRef.current;
     if (!iframe?.contentWindow) {
@@ -235,22 +235,6 @@ const Home = () => {
     if (ok) {
       showSuccess(t('已复制到剪切板'));
     }
-  };
-
-  const handleHeroMouseMove = (event) => {
-    if (isMobile) {
-      return;
-    }
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    event.currentTarget.style.setProperty(
-      '--hero-mask-x',
-      `${((event.clientX - rect.left) / rect.width) * 100}%`,
-    );
-    event.currentTarget.style.setProperty(
-      '--hero-mask-y',
-      `${((event.clientY - rect.top) / rect.height) * 100}%`,
-    );
   };
 
   useEffect(() => {
@@ -302,19 +286,7 @@ const Home = () => {
 
   const renderDefaultHome = () => (
     <div className='newapi-home-page'>
-      <section
-        className={`newapi-home-hero ${heroMaskActive ? 'is-mask-active' : ''}`}
-        onMouseMove={handleHeroMouseMove}
-        onMouseEnter={() => !isMobile && setHeroMaskActive(true)}
-        onMouseLeave={() => !isMobile && setHeroMaskActive(false)}
-      >
-        <div className='newapi-hero-mask-layer' aria-hidden='true'>
-          <div className='newapi-hero-mask-layer__content'>
-            <span>{t('统一接入')}</span>
-            <strong>{t('供应商矩阵')}</strong>
-            <span>{t('复制 URL 即刻切换')}</span>
-          </div>
-        </div>
+      <section className='newapi-home-hero'>
         <div className='newapi-stack-shell'>
           <div className='newapi-stack-hero-copy'>
             <div className='newapi-stack-kicker'>
@@ -516,6 +488,7 @@ const Home = () => {
           <span>{ctaOpen ? t('收起') : t('快捷')}</span>
         </button>
       </div>
+
     </div>
   );
 

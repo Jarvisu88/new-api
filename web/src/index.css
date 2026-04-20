@@ -913,8 +913,6 @@ html.dark .with-pastel-balls::before {
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--semi-color-border);
-  --hero-mask-x: 68%;
-  --hero-mask-y: 32%;
 }
 
 .newapi-home-hero::before,
@@ -954,60 +952,6 @@ html.dark .with-pastel-balls::before {
   100% {
     transform: translate3d(22px, -16px, 0) scale(1.08);
   }
-}
-
-.newapi-hero-mask-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    radial-gradient(circle at var(--hero-mask-x) var(--hero-mask-y), rgba(6, 182, 212, 0.32), transparent 28%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(14, 116, 144, 0.82));
-  clip-path: circle(34px at var(--hero-mask-x) var(--hero-mask-y));
-  transition:
-    clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.22s ease;
-}
-
-.newapi-home-hero.is-mask-active .newapi-hero-mask-layer {
-  opacity: 1;
-  clip-path: circle(190px at var(--hero-mask-x) var(--hero-mask-y));
-}
-
-.newapi-hero-mask-layer__content {
-  position: absolute;
-  left: var(--hero-mask-x);
-  top: var(--hero-mask-y);
-  display: grid;
-  width: 230px;
-  gap: 5px;
-  color: #f8fafc;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
-}
-
-.newapi-hero-mask-layer__content span {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  opacity: 0.82;
-}
-
-.newapi-hero-mask-layer__content strong {
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-
-html.dark .newapi-hero-mask-layer {
-  background:
-    radial-gradient(circle at var(--hero-mask-x) var(--hero-mask-y), rgba(34, 211, 238, 0.24), transparent 30%),
-    linear-gradient(135deg, rgba(2, 6, 23, 0.96), rgba(8, 47, 73, 0.88));
 }
 
 .newapi-home-section {
@@ -1514,10 +1458,6 @@ html.dark .newapi-circle-menu__item:hover {
 }
 
 @media (max-width: 767px) {
-  .newapi-hero-mask-layer {
-    display: none;
-  }
-
   .newapi-home-section {
     padding: 56px 0;
   }
@@ -2098,13 +2038,6 @@ html.dark .newapi-circle-menu__label {
   filter: blur(1px);
   opacity: 0.42;
   animation: none;
-}
-
-.newapi-hero-mask-layer {
-  z-index: 4;
-  background:
-    radial-gradient(circle at var(--hero-mask-x) var(--hero-mask-y), rgba(96, 165, 250, 0.36), transparent 27%),
-    linear-gradient(135deg, rgba(2, 6, 23, 0.94), rgba(8, 47, 73, 0.82));
 }
 
 .newapi-stack-shell {
