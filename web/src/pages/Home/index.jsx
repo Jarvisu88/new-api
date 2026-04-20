@@ -328,8 +328,7 @@ const Home = () => {
       <section ref={heroRef} className='newapi-home-hero'>
         <ProximityBackground
           containerRef={heroRef}
-          columns={isMobile ? 6 : 14}
-          count={isMobile ? 30 : 84}
+          diameter={isMobile ? 38 : 54}
           disabled={isMobile}
         />
         <div className='newapi-stack-shell'>
@@ -536,7 +535,9 @@ const Home = () => {
         >
           <span className='newapi-circle-menu__trigger-glow' />
           {ctaOpen ? <X size={22} /> : <Sparkles size={22} />}
-          <span>{ctaOpen ? t('收起') : t('快捷')}</span>
+          <span className='newapi-circle-menu__trigger-text'>
+            {ctaOpen ? t('收起') : t('快捷')}
+          </span>
         </button>
       </div>
 

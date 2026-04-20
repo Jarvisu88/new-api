@@ -17,194 +17,200 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
-const palette = [
-  'rgba(125, 211, 252, 0.34)',
-  'rgba(96, 165, 250, 0.28)',
-  'rgba(192, 132, 252, 0.26)',
-  'rgba(45, 212, 191, 0.24)',
-];
+const colors = ['#38bdf8', '#818cf8', '#2dd4bf', '#c084fc'];
 
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const pickColor = () => colors[Math.floor(Math.random() * colors.length)];
 
 const ProximityBackground = ({
   containerRef,
-  columns = 14,
-  count = 84,
+  diameter = 56,
+  fadeDelay = 520,
   disabled = false,
 }) => {
   const rootRef = useRef(null);
-  const dotRefs = useRef([]);
-  const geometryRef = useRef([]);
-  const frameRef = useRef(0);
-  const pointerRef = useRef({ x: 0, y: 0 });
-  const targetRef = useRef({ x: 0, y: 0 });
-  const strengthRef = useRef(0);
-  const activeRef = useRef(false);
-  const reducedMotionRef = useRef(false);
+  const sizeRef = useRef({ width: 0, height: 0 });
+  const activeTimeoutsRef = useRef(new Map());
+  const lastCellRef = useRef(-1);
+  const [grid, setGrid] = useState({ cols: 0, rows: 0 });
+  const [activeDots, setActiveDots] = useState({});
+
+  const dotCount = grid.cols * grid.rows;
 
   const dots = useMemo(
-    () =>
-      Array.from({ length: count }, (_, index) => ({
-        id: index,
-        color: palette[index % palette.length],
-      })),
-    [count],
+    () => Array.from({ length: dotCount }, (_, index) => index),
+    [dotCount],
   );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      reducedMotionRef.current = window.matchMedia(
-        '(prefers-reduced-motion: reduce)',
-      ).matches;
-    }
-  }, []);
-
-  useEffect(() => {
     const root = rootRef.current;
-    const container = containerRef?.current;
 
-    if (!root || !container) {
+    if (!root) {
       return undefined;
     }
 
     const measure = () => {
-      geometryRef.current = dotRefs.current.map((node) => {
-        if (!node) {
-          return null;
-        }
-
-        return {
-          x: node.offsetLeft + node.offsetWidth / 2,
-          y: node.offsetTop + node.offsetHeight / 2,
-        };
-      });
-    };
-
-    const stopFrame = () => {
-      if (frameRef.current) {
-        window.cancelAnimationFrame(frameRef.current);
-        frameRef.current = 0;
-      }
-    };
-
-    const paint = () => {
-      const damping = reducedMotionRef.current ? 0.28 : 0.18;
-      const pointer = pointerRef.current;
-      const target = targetRef.current;
-
-      pointer.x += (target.x - pointer.x) * damping;
-      pointer.y += (target.y - pointer.y) * damping;
-
-      const nextStrength = activeRef.current ? 1 : 0;
-      strengthRef.current += (nextStrength - strengthRef.current) * 0.14;
-
-      dotRefs.current.forEach((node, index) => {
-        const geometry = geometryRef.current[index];
-
-        if (!node || !geometry) {
-          return;
-        }
-
-        const dx = pointer.x - geometry.x;
-        const dy = pointer.y - geometry.y;
-        const distance = Math.hypot(dx, dy);
-        const influence =
-          clamp(1 - distance / 210, 0, 1) * strengthRef.current;
-        const scale = 0.74 + influence * 1.22;
-        const opacity = 0.09 + influence * 0.72;
-        const blur = 8 - influence * 5;
-
-        node.style.setProperty('--bg-dot-scale', scale.toFixed(3));
-        node.style.setProperty('--bg-dot-opacity', opacity.toFixed(3));
-        node.style.setProperty('--bg-dot-blur', `${blur.toFixed(2)}px`);
-      });
-
-      if (strengthRef.current > 0.015 || activeRef.current) {
-        frameRef.current = window.requestAnimationFrame(paint);
-      } else {
-        stopFrame();
-      }
-    };
-
-    const ensureFrame = () => {
-      if (!frameRef.current) {
-        frameRef.current = window.requestAnimationFrame(paint);
-      }
-    };
-
-    const updatePointerFromEvent = (event) => {
       const rect = root.getBoundingClientRect();
-      targetRef.current = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
+      sizeRef.current = {
+        width: rect.width,
+        height: rect.height,
       };
-      activeRef.current = true;
-      ensureFrame();
-    };
 
-    const handlePointerLeave = () => {
-      activeRef.current = false;
-      ensureFrame();
+      const cols = Math.max(1, Math.ceil(rect.width / diameter));
+      const rows = Math.max(1, Math.ceil(rect.height / diameter));
+      setGrid((prev) =>
+        prev.cols === cols && prev.rows === rows ? prev : { cols, rows },
+      );
     };
 
     measure();
-    dotRefs.current.forEach((node) => {
-      if (!node) {
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [diameter]);
+
+  useEffect(() => {
+    activeTimeoutsRef.current.forEach((timer) => window.clearTimeout(timer));
+    activeTimeoutsRef.current.clear();
+    setActiveDots({});
+    lastCellRef.current = -1;
+  }, [dotCount]);
+
+  useEffect(() => {
+    const container = containerRef?.current;
+    const root = rootRef.current;
+
+    if (!container || !root || disabled || !grid.cols || !grid.rows) {
+      return undefined;
+    }
+
+    const activateDot = (index) => {
+      if (index < 0 || index >= dotCount) {
         return;
       }
 
-      node.style.setProperty('--bg-dot-scale', '0.74');
-      node.style.setProperty('--bg-dot-opacity', '0.09');
-      node.style.setProperty('--bg-dot-blur', '8px');
-    });
+      setActiveDots((prev) => ({
+        ...prev,
+        [index]: pickColor(),
+      }));
 
-    const observer = new ResizeObserver(() => {
-      measure();
-      ensureFrame();
-    });
+      const existing = activeTimeoutsRef.current.get(index);
+      if (existing) {
+        window.clearTimeout(existing);
+      }
 
-    observer.observe(root);
-    observer.observe(container);
-    window.addEventListener('resize', measure);
+      const timeout = window.setTimeout(() => {
+        setActiveDots((prev) => {
+          if (!(index in prev)) {
+            return prev;
+          }
 
-    if (!disabled) {
-      container.addEventListener('pointermove', updatePointerFromEvent);
-      container.addEventListener('pointerleave', handlePointerLeave);
-    }
+          const next = { ...prev };
+          delete next[index];
+          return next;
+        });
+        activeTimeoutsRef.current.delete(index);
+      }, fadeDelay);
 
-    return () => {
-      stopFrame();
-      observer.disconnect();
-      window.removeEventListener('resize', measure);
+      activeTimeoutsRef.current.set(index, timeout);
+    };
 
-      if (!disabled) {
-        container.removeEventListener('pointermove', updatePointerFromEvent);
-        container.removeEventListener('pointerleave', handlePointerLeave);
+    const handlePointerMove = (event) => {
+      const rect = root.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+        return;
+      }
+
+      const col = Math.max(
+        0,
+        Math.min(grid.cols - 1, Math.floor(x / diameter)),
+      );
+      const row = Math.max(
+        0,
+        Math.min(grid.rows - 1, Math.floor(y / diameter)),
+      );
+      const index = row * grid.cols + col;
+
+      if (index !== lastCellRef.current) {
+        lastCellRef.current = index;
+        activateDot(index);
       }
     };
-  }, [columns, containerRef, disabled, dots.length]);
+
+    const handlePointerLeave = () => {
+      lastCellRef.current = -1;
+    };
+
+    container.addEventListener('pointermove', handlePointerMove);
+    container.addEventListener('pointerleave', handlePointerLeave);
+
+    return () => {
+      container.removeEventListener('pointermove', handlePointerMove);
+      container.removeEventListener('pointerleave', handlePointerLeave);
+    };
+  }, [containerRef, diameter, disabled, dotCount, fadeDelay, grid.cols, grid.rows]);
+
+  useEffect(
+    () => () => {
+      activeTimeoutsRef.current.forEach((timer) => window.clearTimeout(timer));
+      activeTimeoutsRef.current.clear();
+    },
+    [],
+  );
 
   return (
-    <div
-      ref={rootRef}
-      className='newapi-proximity-background'
-      aria-hidden='true'
-      style={{ '--proximity-columns': columns }}
-    >
-      <div className='newapi-proximity-background__veil' />
-      <div className='newapi-proximity-background__grid'>
-        {dots.map((dot, index) => (
-          <span
-            key={dot.id}
-            ref={(node) => {
-              dotRefs.current[index] = node;
-            }}
-            className='newapi-proximity-background__dot'
-            style={{ '--bg-dot-color': dot.color }}
-          />
-        ))}
+    <div ref={rootRef} className='newapi-proximity-background' aria-hidden='true'>
+      <div
+        className='newapi-proximity-background__grid'
+        style={{
+          gridTemplateColumns: `repeat(${grid.cols}, minmax(0, ${diameter}px))`,
+          gridAutoRows: `${diameter}px`,
+        }}
+      >
+        {dots.map((index) => {
+          const glowColor = activeDots[index];
+          const isActive = Boolean(glowColor);
+
+          return (
+            <motion.div
+              key={index}
+              className='newapi-proximity-background__cell'
+              animate={{
+                backgroundColor: isActive ? '#06090f' : '#05070d',
+                boxShadow: isActive
+                  ? `0 0 0 1px ${glowColor} inset, 0 0 18px 1px ${glowColor}`
+                  : '0 0 0 1px rgba(148, 163, 184, 0.08) inset, 0 0 0 0 rgba(0, 0, 0, 0)',
+              }}
+              transition={{
+                duration: 0.18,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <motion.div
+                className='newapi-proximity-background__dot'
+                animate={{
+                  backgroundColor: isActive ? glowColor : '#0f172a',
+                  scale: isActive ? 1 : 0.84,
+                }}
+                transition={{
+                  duration: 0.18,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              />
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
