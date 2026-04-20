@@ -63,6 +63,7 @@ import {
 } from '@lobehub/icons';
 import { API, copy, showError, showSuccess } from '../../helpers';
 import NoticeModal from '../../components/layout/NoticeModal';
+import SentenceFlip from '../../components/common/SentenceFlip';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
@@ -128,6 +129,41 @@ const Home = () => {
   const currentEndpointUrl = joinBaseAndPath(
     normalizedServerAddress,
     currentEndpoint,
+  );
+  const heroHeadlineSentences = useMemo(
+    () => [
+      {
+        parts: [
+          { text: t('一个入口') },
+          { text: t('连接所有模型'), highlight: true },
+        ],
+      },
+      {
+        parts: [
+          { text: t('统一接入') },
+          { text: t('聚合主流供应商'), highlight: true },
+        ],
+      },
+      {
+        parts: [
+          { text: t('多家渠道') },
+          { text: t('一套 API 管理'), highlight: true },
+        ],
+      },
+      {
+        parts: [
+          { text: t('复制 URL') },
+          { text: t('即可开始接入'), highlight: true },
+        ],
+      },
+      {
+        parts: [
+          { text: t('切换模型') },
+          { text: t('无需重构业务'), highlight: true },
+        ],
+      },
+    ],
+    [t],
   );
 
   const quickLinks = useMemo(() => {
@@ -311,8 +347,7 @@ const Home = () => {
             </div>
 
             <Title heading={1} className='newapi-stack-title'>
-              <span>{t('一个入口')}</span>
-              <span>{t('连接所有模型')}</span>
+              <SentenceFlip sentences={heroHeadlineSentences} />
             </Title>
 
             <Paragraph className='newapi-stack-subtitle'>

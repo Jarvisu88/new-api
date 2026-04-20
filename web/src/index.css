@@ -2150,8 +2150,42 @@ html.dark .newapi-circle-menu__label {
   letter-spacing: -0.065em !important;
 }
 
-.newapi-stack-title span {
+.newapi-stack-title > span {
   display: block;
+}
+
+.newapi-stack-title .newapi-sentence-flip {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.22em;
+  row-gap: 0.08em;
+}
+
+.newapi-stack-title .newapi-sentence-flip__slot {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  min-width: calc(var(--sentence-slot-ch, 1) * 1em);
+  min-height: 1.08em;
+}
+
+.newapi-stack-title .newapi-sentence-flip__word {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  will-change: transform, filter, opacity;
+}
+
+.newapi-stack-title .newapi-sentence-flip__word.is-highlighted {
+  color: #7dd3fc;
+  text-shadow: 0 0 32px rgba(96, 165, 250, 0.28);
+}
+
+.newapi-stack-title .newapi-sentence-flip__word.is-placeholder {
+  opacity: 0;
 }
 
 .newapi-stack-subtitle {
