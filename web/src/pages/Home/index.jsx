@@ -63,6 +63,8 @@ import {
 } from '@lobehub/icons';
 import { API, copy, showError, showSuccess } from '../../helpers';
 import NoticeModal from '../../components/layout/NoticeModal';
+import ProximityBackground from '../../components/common/ProximityBackground';
+import ProximityProviderIcons from '../../components/common/ProximityProviderIcons';
 import SentenceFlip from '../../components/common/SentenceFlip';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
@@ -113,6 +115,7 @@ const Home = () => {
   const actualTheme = useActualTheme();
   const isMobile = useIsMobile();
   const iframeRef = useRef(null);
+  const heroRef = useRef(null);
 
   const [homePageContentLoaded, setHomePageContentLoaded] = useState(false);
   const [homePageContent, setHomePageContent] = useState('');
@@ -322,7 +325,13 @@ const Home = () => {
 
   const renderDefaultHome = () => (
     <div className='newapi-home-page'>
-      <section className='newapi-home-hero'>
+      <section ref={heroRef} className='newapi-home-hero'>
+        <ProximityBackground
+          containerRef={heroRef}
+          columns={isMobile ? 6 : 14}
+          count={isMobile ? 30 : 84}
+          disabled={isMobile}
+        />
         <div className='newapi-stack-shell'>
           <div className='newapi-stack-hero-copy'>
             <div className='newapi-stack-kicker'>
@@ -345,6 +354,13 @@ const Home = () => {
                 </span>
               ))}
             </div>
+
+            <ProximityProviderIcons
+              items={providerItems}
+              ariaLabel={t('鏀寔鐨勪緵搴斿晢')}
+              disabled={isMobile}
+              className='newapi-stack-provider-icons--proximity'
+            />
 
             <Title heading={1} className='newapi-stack-title'>
               <SentenceFlip sentences={heroHeadlineSentences} />
