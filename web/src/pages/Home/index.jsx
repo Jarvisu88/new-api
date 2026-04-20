@@ -17,69 +17,200 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Typography } from '@douyinfe/semi-ui';
 import {
-  Button,
-  Typography,
-  Input,
-  ScrollList,
-  ScrollItem,
-} from '@douyinfe/semi-ui';
-import { API, showError, copy, showSuccess } from '../../helpers';
-import { useIsMobile } from '../../hooks/common/useIsMobile';
-import { API_ENDPOINTS } from '../../constants/common.constant';
-import { StatusContext } from '../../context/Status';
-import { useActualTheme } from '../../context/Theme';
+  ArrowUpRight,
+  BookOpenText,
+  CircleDollarSign,
+  Copy,
+  LayoutDashboard,
+  Link2,
+  Sparkles,
+  WalletCards,
+  X,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 import { useTranslation } from 'react-i18next';
 import {
-  IconGithubLogo,
-  IconPlay,
-  IconFile,
-  IconCopy,
-} from '@douyinfe/semi-icons';
-import { Link } from 'react-router-dom';
-import NoticeModal from '../../components/layout/NoticeModal';
-import {
+  AzureAI,
+  Claude,
+  Cohere,
+  DeepSeek,
+  Gemini,
+  Grok,
+  Hunyuan,
+  Midjourney,
+  Minimax,
   Moonshot,
   OpenAI,
-  XAI,
-  Zhipu,
-  Volcengine,
-  Cohere,
-  Claude,
-  Gemini,
-  Suno,
-  Minimax,
-  Wenxin,
-  Spark,
   Qingyan,
-  DeepSeek,
   Qwen,
-  Midjourney,
-  Grok,
-  AzureAI,
-  Hunyuan,
+  Spark,
+  Suno,
+  Volcengine,
+  Wenxin,
+  XAI,
   Xinference,
+  Zhipu,
 } from '@lobehub/icons';
+import { API, copy, showError, showSuccess } from '../../helpers';
+import NoticeModal from '../../components/layout/NoticeModal';
+import { API_ENDPOINTS } from '../../constants/common.constant';
+import { StatusContext } from '../../context/Status';
+import { useActualTheme } from '../../context/Theme';
+import { useIsMobile } from '../../hooks/common/useIsMobile';
 
-const { Text } = Typography;
+const { Text, Title, Paragraph } = Typography;
+
+const providerItems = [
+  { label: 'Moonshot', Icon: Moonshot },
+  { label: 'OpenAI', Icon: OpenAI },
+  { label: 'xAI', Icon: XAI },
+  { label: 'Zhipu', Icon: Zhipu.Color },
+  { label: 'Volcengine', Icon: Volcengine.Color },
+  { label: 'Cohere', Icon: Cohere.Color },
+  { label: 'Claude', Icon: Claude.Color },
+  { label: 'Gemini', Icon: Gemini.Color },
+  { label: 'Suno', Icon: Suno },
+  { label: 'MiniMax', Icon: Minimax.Color },
+  { label: 'Wenxin', Icon: Wenxin.Color },
+  { label: 'Spark', Icon: Spark.Color },
+  { label: 'Qingyan', Icon: Qingyan.Color },
+  { label: 'DeepSeek', Icon: DeepSeek.Color },
+  { label: 'Qwen', Icon: Qwen.Color },
+  { label: 'Midjourney', Icon: Midjourney },
+  { label: 'Grok', Icon: Grok },
+  { label: 'Azure AI', Icon: AzureAI.Color },
+  { label: 'Hunyuan', Icon: Hunyuan.Color },
+  { label: 'Xinference', Icon: Xinference.Color },
+];
+
+const joinBaseAndPath = (base, path) => {
+  const normalizedBase = `${base || ''}`.replace(/\/+$/, '');
+  return `${normalizedBase}${path}`;
+};
+
+const quickLinkIconMap = {
+  console: LayoutDashboard,
+  about: Sparkles,
+  pricing: CircleDollarSign,
+  docs: BookOpenText,
+  topup: WalletCards,
+};
 
 const Home = () => {
   const { t, i18n } = useTranslation();
   const [statusState] = useContext(StatusContext);
   const actualTheme = useActualTheme();
+  const isMobile = useIsMobile();
+  const iframeRef = useRef(null);
+
   const [homePageContentLoaded, setHomePageContentLoaded] = useState(false);
   const [homePageContent, setHomePageContent] = useState('');
   const [noticeVisible, setNoticeVisible] = useState(false);
-  const isMobile = useIsMobile();
-  const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
-  const docsLink = statusState?.status?.docs_link || '';
-  const serverAddress =
-    statusState?.status?.server_address || `${window.location.origin}`;
-  const endpointItems = API_ENDPOINTS.map((e) => ({ value: e }));
+  const [ctaOpen, setCtaOpen] = useState(false);
   const [endpointIndex, setEndpointIndex] = useState(0);
-  const isChinese = i18n.language.startsWith('zh');
+  const [heroMaskActive, setHeroMaskActive] = useState(false);
+
+  const status = statusState?.status || {};
+  const docsLink = status.docs_link || '';
+  const serverAddress = status.server_address || window.location.origin;
+  const normalizedServerAddress = `${serverAddress}`.replace(/\/+$/, '');
+  const endpointItems = useMemo(() => API_ENDPOINTS.map((value) => ({ value })), []);
+  const currentEndpoint = endpointItems[endpointIndex]?.value || API_ENDPOINTS[0];
+  const currentEndpointUrl = joinBaseAndPath(
+    normalizedServerAddress,
+    currentEndpoint,
+  );
+
+  const quickLinks = useMemo(() => {
+    const links = [
+      {
+        key: 'console',
+        label: t('进入控制台'),
+        to: '/console',
+      },
+      {
+        key: 'about',
+        label: t('产品介绍'),
+        to: '/about',
+      },
+      {
+        key: 'pricing',
+        label: t('查看价格页'),
+        to: '/pricing',
+      },
+      {
+        key: 'docs',
+        label: docsLink ? t('打开文档') : t('查看关于页'),
+        to: docsLink || '/about',
+        external: Boolean(docsLink),
+      },
+    ];
+
+    if (
+      status.top_up_link ||
+      status.enable_online_topup ||
+      status.enable_stripe_topup ||
+      status.enable_creem_topup ||
+      status.enable_waffo_topup
+    ) {
+      links.push({
+        key: 'topup',
+        label: t('充值与订阅'),
+        to: '/topup',
+      });
+    }
+
+    return links;
+  }, [
+    docsLink,
+    status.enable_creem_topup,
+    status.enable_online_topup,
+    status.enable_stripe_topup,
+    status.enable_waffo_topup,
+    status.top_up_link,
+    t,
+  ]);
+
+  const radialQuickLinks = useMemo(
+    () =>
+      quickLinks.map((item, index) => {
+        const Icon = quickLinkIconMap[item.key] || ArrowUpRight;
+        const angle = -180 + index * (90 / Math.max(quickLinks.length - 1, 1));
+        const radius = isMobile ? 0 : 116;
+        const x = Math.cos((angle * Math.PI) / 180) * radius;
+        const y = Math.sin((angle * Math.PI) / 180) * radius;
+
+        return {
+          ...item,
+          Icon,
+          style: {
+            '--menu-x': `${x}px`,
+            '--menu-y': `${y}px`,
+            '--menu-index': index,
+          },
+        };
+      }),
+    [isMobile, quickLinks],
+  );
+
+  const postIframeThemeAndLang = () => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) {
+      return;
+    }
+    iframe.contentWindow.postMessage({ themeMode: actualTheme }, '*');
+    iframe.contentWindow.postMessage({ lang: i18n.language }, '*');
+  };
 
   const displayHomePageContent = async () => {
     setHomePageContent(localStorage.getItem('home_page_content') || '');
@@ -92,17 +223,6 @@ const Home = () => {
       }
       setHomePageContent(content);
       localStorage.setItem('home_page_content', content);
-
-      // 如果内容是 URL，则发送主题模式
-      if (data.startsWith('https://')) {
-        const iframe = document.querySelector('iframe');
-        if (iframe) {
-          iframe.onload = () => {
-            iframe.contentWindow.postMessage({ themeMode: actualTheme }, '*');
-            iframe.contentWindow.postMessage({ lang: i18n.language }, '*');
-          };
-        }
-      }
     } else {
       showError(message);
       setHomePageContent('加载首页内容失败...');
@@ -111,10 +231,26 @@ const Home = () => {
   };
 
   const handleCopyBaseURL = async () => {
-    const ok = await copy(serverAddress);
+    const ok = await copy(normalizedServerAddress);
     if (ok) {
       showSuccess(t('已复制到剪切板'));
     }
+  };
+
+  const handleHeroMouseMove = (event) => {
+    if (isMobile) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty(
+      '--hero-mask-x',
+      `${((event.clientX - rect.left) / rect.width) * 100}%`,
+    );
+    event.currentTarget.style.setProperty(
+      '--hero-mask-y',
+      `${((event.clientY - rect.top) / rect.height) * 100}%`,
+    );
   };
 
   useEffect(() => {
@@ -144,9 +280,244 @@ const Home = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setEndpointIndex((prev) => (prev + 1) % endpointItems.length);
-    }, 3000);
+    }, 2800);
     return () => clearInterval(timer);
   }, [endpointItems.length]);
+
+  useEffect(() => {
+    if (homePageContent.startsWith('https://')) {
+      postIframeThemeAndLang();
+    }
+  }, [actualTheme, homePageContent, i18n.language]);
+
+  if (!homePageContentLoaded) {
+    return (
+      <div className='min-h-screen w-full overflow-x-hidden bg-semi-color-bg-0 pt-[92px]'>
+        <div className='mx-auto flex min-h-[50vh] max-w-6xl items-center justify-center px-4'>
+          <Text type='tertiary'>{t('正在加载首页内容...')}</Text>
+        </div>
+      </div>
+    );
+  }
+
+  const renderDefaultHome = () => (
+    <div className='newapi-home-page'>
+      <section
+        className={`newapi-home-hero ${heroMaskActive ? 'is-mask-active' : ''}`}
+        onMouseMove={handleHeroMouseMove}
+        onMouseEnter={() => !isMobile && setHeroMaskActive(true)}
+        onMouseLeave={() => !isMobile && setHeroMaskActive(false)}
+      >
+        <div className='newapi-hero-mask-layer' aria-hidden='true'>
+          <div className='newapi-hero-mask-layer__content'>
+            <span>{t('统一接入')}</span>
+            <strong>{t('供应商矩阵')}</strong>
+            <span>{t('复制 URL 即刻切换')}</span>
+          </div>
+        </div>
+        <div className='newapi-stack-shell'>
+          <div className='newapi-stack-hero-copy'>
+            <div className='newapi-stack-kicker'>
+              <span>{status.version || 'v0.12.14'}</span>
+              <span>{t('统一 AI 网关')}</span>
+            </div>
+
+            <div
+              className='newapi-stack-provider-icons'
+              aria-label={t('支持的供应商')}
+            >
+              {providerItems.slice(0, 10).map(({ label, Icon }, index) => (
+                <span
+                  key={label}
+                  className='newapi-stack-provider-icon'
+                  style={{ '--icon-index': index }}
+                  title={label}
+                >
+                  <Icon size={22} />
+                </span>
+              ))}
+            </div>
+
+            <Title heading={1} className='newapi-stack-title'>
+              <span>{t('一个入口')}</span>
+              <span>{t('连接所有模型')}</span>
+            </Title>
+
+            <Paragraph className='newapi-stack-subtitle'>
+              {t('new-api 将 OpenAI、Claude、Gemini、Azure、DeepSeek 等众多供应商收束成统一 API，复制接入 URL 就能切换你的模型基址。')}
+            </Paragraph>
+
+            <div className='newapi-stack-actions'>
+              <Link
+                to='/console'
+                className='newapi-stack-action newapi-stack-action--dark'
+              >
+                <span className='newapi-stack-action__orb'>
+                  <LayoutDashboard size={17} />
+                </span>
+                <span>{t('进入控制台')}</span>
+              </Link>
+              <button
+                type='button'
+                className='newapi-stack-action newapi-stack-action--blue'
+                onClick={handleCopyBaseURL}
+              >
+                <span>{t('复制接入 URL')}</span>
+                <span className='newapi-stack-action__bubble'>
+                  <Copy size={17} />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <section
+            className='newapi-stack-stage'
+            aria-label={t('new-api 接入预览')}
+          >
+            <div className='newapi-stack-stage__grain' aria-hidden='true' />
+            <div className='newapi-stack-preview'>
+              <div className='newapi-stack-preview__shine' aria-hidden='true' />
+
+              <div className='newapi-stack-metric newapi-stack-metric--left'>
+                <strong>40+</strong>
+                <span>{t('供应商')}</span>
+              </div>
+
+              <div className='newapi-stack-metric newapi-stack-metric--right'>
+                <strong>1 URL</strong>
+                <span>{t('统一接入')}</span>
+              </div>
+
+              <div className='newapi-stack-access-card'>
+                <div className='newapi-stack-access-card__meta'>
+                  <Link2 size={16} />
+                  <span>{t('接入 URL')}</span>
+                </div>
+                <button
+                  type='button'
+                  className='newapi-stack-access-card__copy'
+                  onClick={handleCopyBaseURL}
+                  aria-label={t('复制接入 URL')}
+                >
+                  <Copy size={18} />
+                </button>
+                <Text
+                  ellipsis={{ showTooltip: true }}
+                  className='newapi-stack-access-card__value'
+                >
+                  {normalizedServerAddress}
+                </Text>
+              </div>
+
+              <div className='newapi-stack-endpoint'>
+                <span>{t('当前端点')}</span>
+                <Text
+                  ellipsis={{ showTooltip: true }}
+                  className='newapi-stack-endpoint__value'
+                >
+                  {currentEndpointUrl}
+                </Text>
+              </div>
+
+              <div className='newapi-stack-provider-board'>
+                {providerItems.slice(0, 8).map(({ label, Icon }, index) => (
+                  <div
+                    key={label}
+                    className='newapi-stack-provider-tile'
+                    style={{ '--provider-index': index }}
+                  >
+                    <Icon size={24} />
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className='newapi-stack-stage-controls'>
+              <button
+                type='button'
+                className='newapi-stack-control newapi-stack-control--warm'
+                onClick={handleCopyBaseURL}
+              >
+                <span>
+                  <Copy size={16} />
+                </span>
+                {t('复制 URL')}
+              </button>
+              <Link
+                to='/console'
+                className='newapi-stack-control newapi-stack-control--cool'
+              >
+                {t('开始接入')}
+                <span>
+                  <ArrowUpRight size={16} />
+                </span>
+              </Link>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <div className={`newapi-circle-menu ${ctaOpen ? 'is-open' : ''}`}>
+        <div className='newapi-circle-menu__items' aria-hidden={!ctaOpen}>
+          {radialQuickLinks.map((item) => {
+            const { Icon } = item;
+            const menuItem = (
+              <>
+                <span className='newapi-circle-menu__icon'>
+                  <Icon size={17} />
+                </span>
+                <span className='newapi-circle-menu__label'>{item.label}</span>
+              </>
+            );
+
+            return item.external ? (
+              <a
+                key={item.label}
+                href={item.to}
+                target='_blank'
+                rel='noreferrer'
+                className='newapi-circle-menu__item'
+                style={item.style}
+                tabIndex={ctaOpen ? 0 : -1}
+              >
+                {menuItem}
+              </a>
+            ) : (
+              <Link
+                key={item.label}
+                to={item.to}
+                className='newapi-circle-menu__item'
+                style={item.style}
+                tabIndex={ctaOpen ? 0 : -1}
+              >
+                {menuItem}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className='newapi-circle-menu__hint' aria-hidden={!ctaOpen}>
+          <Text className='!font-semibold'>{t('快捷入口')}</Text>
+          <Paragraph className='!mb-0 !mt-1 !text-xs !text-semi-color-text-2'>
+            {t('圆形菜单快速进入核心页面。')}
+          </Paragraph>
+        </div>
+
+        <button
+          type='button'
+          className='newapi-circle-menu__trigger'
+          onClick={() => setCtaOpen((prev) => !prev)}
+          aria-expanded={ctaOpen}
+          aria-label={ctaOpen ? t('收起快捷入口') : t('展开快捷入口')}
+        >
+          <span className='newapi-circle-menu__trigger-glow' />
+          {ctaOpen ? <X size={22} /> : <Sparkles size={22} />}
+          <span>{ctaOpen ? t('收起') : t('快捷')}</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className='w-full overflow-x-hidden'>
@@ -155,191 +526,16 @@ const Home = () => {
         onClose={() => setNoticeVisible(false)}
         isMobile={isMobile}
       />
-      {homePageContentLoaded && homePageContent === '' ? (
-        <div className='w-full overflow-x-hidden'>
-          {/* Banner 部分 */}
-          <div className='w-full border-b border-semi-color-border min-h-[500px] md:min-h-[600px] lg:min-h-[700px] relative overflow-x-hidden'>
-            {/* 背景模糊晕染球 */}
-            <div className='blur-ball blur-ball-indigo' />
-            <div className='blur-ball blur-ball-teal' />
-            <div className='flex items-center justify-center h-full px-4 py-20 md:py-24 lg:py-32 mt-10'>
-              {/* 居中内容区 */}
-              <div className='flex flex-col items-center justify-center text-center max-w-4xl mx-auto'>
-                <div className='flex flex-col items-center justify-center mb-6 md:mb-8'>
-                  <h1
-                    className={`text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-semi-color-text-0 leading-tight ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
-                  >
-                    <>
-                      {t('统一的')}
-                      <br />
-                      <span className='shine-text'>{t('大模型接口网关')}</span>
-                    </>
-                  </h1>
-                  <p className='text-base md:text-lg lg:text-xl text-semi-color-text-1 mt-4 md:mt-6 max-w-xl'>
-                    {t('更好的价格，更好的稳定性，只需要将模型基址替换为：')}
-                  </p>
-                  {/* BASE URL 与端点选择 */}
-                  <div className='flex flex-col md:flex-row items-center justify-center gap-4 w-full mt-4 md:mt-6 max-w-md'>
-                    <Input
-                      readonly
-                      value={serverAddress}
-                      className='flex-1 !rounded-full'
-                      size={isMobile ? 'default' : 'large'}
-                      suffix={
-                        <div className='flex items-center gap-2'>
-                          <ScrollList
-                            bodyHeight={32}
-                            style={{ border: 'unset', boxShadow: 'unset' }}
-                          >
-                            <ScrollItem
-                              mode='wheel'
-                              cycled={true}
-                              list={endpointItems}
-                              selectedIndex={endpointIndex}
-                              onSelect={({ index }) => setEndpointIndex(index)}
-                            />
-                          </ScrollList>
-                          <Button
-                            type='primary'
-                            onClick={handleCopyBaseURL}
-                            icon={<IconCopy />}
-                            className='!rounded-full'
-                          />
-                        </div>
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className='flex flex-row gap-4 justify-center items-center'>
-                  <Link to='/console'>
-                    <Button
-                      theme='solid'
-                      type='primary'
-                      size={isMobile ? 'default' : 'large'}
-                      className='!rounded-3xl px-8 py-2'
-                      icon={<IconPlay />}
-                    >
-                      {t('获取密钥')}
-                    </Button>
-                  </Link>
-                  {isDemoSiteMode && statusState?.status?.version ? (
-                    <Button
-                      size={isMobile ? 'default' : 'large'}
-                      className='flex items-center !rounded-3xl px-6 py-2'
-                      icon={<IconGithubLogo />}
-                      onClick={() =>
-                        window.open(
-                          'https://github.com/QuantumNous/new-api',
-                          '_blank',
-                        )
-                      }
-                    >
-                      {statusState.status.version}
-                    </Button>
-                  ) : (
-                    docsLink && (
-                      <Button
-                        size={isMobile ? 'default' : 'large'}
-                        className='flex items-center !rounded-3xl px-6 py-2'
-                        icon={<IconFile />}
-                        onClick={() => window.open(docsLink, '_blank')}
-                      >
-                        {t('文档')}
-                      </Button>
-                    )
-                  )}
-                </div>
-
-                {/* 框架兼容性图标 */}
-                <div className='mt-12 md:mt-16 lg:mt-20 w-full'>
-                  <div className='flex items-center mb-6 md:mb-8 justify-center'>
-                    <Text
-                      type='tertiary'
-                      className='text-lg md:text-xl lg:text-2xl font-light'
-                    >
-                      {t('支持众多的大模型供应商')}
-                    </Text>
-                  </div>
-                  <div className='flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 max-w-5xl mx-auto px-4'>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Moonshot size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <OpenAI size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <XAI size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Zhipu.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Volcengine.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Cohere.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Claude.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Gemini.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Suno size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Minimax.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Wenxin.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Spark.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Qingyan.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <DeepSeek.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Qwen.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Midjourney size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Grok size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <AzureAI.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Hunyuan.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Xinference.Color size={40} />
-                    </div>
-                    <div className='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center'>
-                      <Typography.Text className='!text-lg sm:!text-xl md:!text-2xl lg:!text-3xl font-bold'>
-                        30+
-                      </Typography.Text>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {homePageContent === '' ? (
+        renderDefaultHome()
       ) : (
         <div className='overflow-x-hidden w-full'>
           {homePageContent.startsWith('https://') ? (
             <iframe
+              ref={iframeRef}
               src={homePageContent}
               className='w-full h-screen border-none'
+              onLoad={postIframeThemeAndLang}
             />
           ) : (
             <div
