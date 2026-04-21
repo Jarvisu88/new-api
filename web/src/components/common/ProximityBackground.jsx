@@ -17,12 +17,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useCallback } from 'react';
 
-const colors = ['#38bdf8', '#818cf8', '#2dd4bf', '#c084fc'];
+const COLORS = [
+  [56, 189, 248],   // sky-400
+  [129, 140, 248],  // indigo-400
+  [45, 212, 191],   // teal-400
+  [192, 132, 252],  // purple-400
+  [251, 146, 60],   // orange-400
+  [52, 211, 153],   // emerald-400
+];
 
-const pickColor = () => colors[Math.floor(Math.random() * colors.length)];
+const pickColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
 
 const ProximityBackground = ({
   containerRef,
@@ -30,121 +36,211 @@ const ProximityBackground = ({
   fadeDelay = 520,
   disabled = false,
 }) => {
-  const rootRef = useRef(null);
-  const sizeRef = useRef({ width: 0, height: 0 });
-  const activeTimeoutsRef = useRef(new Map());
+  const canvasRef = useRef(null);
+  const frameRef = useRef(0);
+  const activeCellsRef = useRef(new Map());
   const lastCellRef = useRef(-1);
-  const [grid, setGrid] = useState({ cols: 0, rows: 0 });
-  const [activeDots, setActiveDots] = useState({});
+  const gridRef = useRef({ cols: 0, rows: 0 });
+  const sizeRef = useRef({ width: 0, height: 0 });
+  const dprRef = useRef(1);
 
-  const dotCount = grid.cols * grid.rows;
+  const paint = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const dots = useMemo(
-    () => Array.from({ length: dotCount }, (_, index) => index),
-    [dotCount],
-  );
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-  useEffect(() => {
-    const root = rootRef.current;
+    const dpr = dprRef.current;
+    const { width, height } = sizeRef.current;
+    const { cols, rows } = gridRef.current;
+    const now = Date.now();
+    const cells = activeCellsRef.current;
 
-    if (!root) {
-      return undefined;
+    ctx.clearRect(0, 0, width * dpr, height * dpr);
+
+    // Draw base grid dots
+    const dotRadius = diameter * 0.11;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const cx = (col + 0.5) * diameter;
+        const cy = (row + 0.5) * diameter;
+
+        ctx.beginPath();
+        ctx.arc(cx * dpr, cy * dpr, dotRadius * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.06)';
+        ctx.fill();
+      }
     }
 
+    // Draw active glowing cells
+    let hasActive = false;
+    cells.forEach((cell, index) => {
+      const elapsed = now - cell.start;
+      const progress = Math.min(elapsed / fadeDelay, 1);
+
+      if (progress >= 1) {
+        cells.delete(index);
+        return;
+      }
+
+      hasActive = true;
+
+      // Smooth ease-out curve
+      const fadeOut = 1 - progress * progress;
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      const cx = (col + 0.5) * diameter;
+      const cy = (row + 0.5) * diameter;
+      const [r, g, b] = cell.color;
+
+      // Outer glow
+      const glowRadius = diameter * 1.2;
+      const gradient = ctx.createRadialGradient(
+        cx * dpr, cy * dpr, 0,
+        cx * dpr, cy * dpr, glowRadius * dpr,
+      );
+      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${0.35 * fadeOut})`);
+      gradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, ${0.15 * fadeOut})`);
+      gradient.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${0.04 * fadeOut})`);
+      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+      ctx.beginPath();
+      ctx.arc(cx * dpr, cy * dpr, glowRadius * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Inner bright dot
+      const innerRadius = dotRadius * (1.6 + fadeOut * 0.8);
+      ctx.beginPath();
+      ctx.arc(cx * dpr, cy * dpr, innerRadius * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.85 * fadeOut})`;
+      ctx.fill();
+
+      // Cell border glow
+      const cellX = col * diameter;
+      const cellY = row * diameter;
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${0.12 * fadeOut})`;
+      ctx.lineWidth = 1 * dpr;
+      ctx.strokeRect(
+        cellX * dpr + 0.5,
+        cellY * dpr + 0.5,
+        diameter * dpr,
+        diameter * dpr,
+      );
+    });
+
+    if (hasActive) {
+      frameRef.current = requestAnimationFrame(paint);
+    } else {
+      frameRef.current = 0;
+    }
+  }, [diameter, fadeDelay]);
+
+  const ensureFrame = useCallback(() => {
+    if (!frameRef.current) {
+      frameRef.current = requestAnimationFrame(paint);
+    }
+  }, [paint]);
+
+  // Setup canvas sizing
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
     const measure = () => {
-      const rect = root.getBoundingClientRect();
-      sizeRef.current = {
-        width: rect.width,
-        height: rect.height,
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      const rect = parent.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dprRef.current = dpr;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+
+      sizeRef.current = { width: rect.width, height: rect.height };
+      gridRef.current = {
+        cols: Math.max(1, Math.ceil(rect.width / diameter)),
+        rows: Math.max(1, Math.ceil(rect.height / diameter)),
       };
 
-      const cols = Math.max(1, Math.ceil(rect.width / diameter));
-      const rows = Math.max(1, Math.ceil(rect.height / diameter));
-      setGrid((prev) =>
-        prev.cols === cols && prev.rows === rows ? prev : { cols, rows },
-      );
+      // Redraw base grid
+      activeCellsRef.current.clear();
+      lastCellRef.current = -1;
+      ensureFrame();
     };
 
     measure();
 
     const observer = new ResizeObserver(measure);
-    observer.observe(root);
+    observer.observe(canvas.parentElement);
     window.addEventListener('resize', measure);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', measure);
     };
-  }, [diameter]);
+  }, [diameter, ensureFrame]);
 
-  useEffect(() => {
-    activeTimeoutsRef.current.forEach((timer) => window.clearTimeout(timer));
-    activeTimeoutsRef.current.clear();
-    setActiveDots({});
-    lastCellRef.current = -1;
-  }, [dotCount]);
-
+  // Mouse interaction
   useEffect(() => {
     const container = containerRef?.current;
-    const root = rootRef.current;
+    const canvas = canvasRef.current;
 
-    if (!container || !root || disabled || !grid.cols || !grid.rows) {
-      return undefined;
-    }
+    if (!container || !canvas || disabled) return undefined;
 
-    const activateDot = (index) => {
-      if (index < 0 || index >= dotCount) {
-        return;
-      }
+    const activateCell = (index) => {
+      const { cols, rows } = gridRef.current;
+      const totalCells = cols * rows;
+      if (index < 0 || index >= totalCells) return;
 
-      setActiveDots((prev) => ({
-        ...prev,
-        [index]: pickColor(),
-      }));
+      activeCellsRef.current.set(index, {
+        color: pickColor(),
+        start: Date.now(),
+      });
 
-      const existing = activeTimeoutsRef.current.get(index);
-      if (existing) {
-        window.clearTimeout(existing);
-      }
-
-      const timeout = window.setTimeout(() => {
-        setActiveDots((prev) => {
-          if (!(index in prev)) {
-            return prev;
-          }
-
-          const next = { ...prev };
-          delete next[index];
-          return next;
-        });
-        activeTimeoutsRef.current.delete(index);
-      }, fadeDelay);
-
-      activeTimeoutsRef.current.set(index, timeout);
+      ensureFrame();
     };
 
     const handlePointerMove = (event) => {
-      const rect = root.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-        return;
-      }
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
 
-      const col = Math.max(
-        0,
-        Math.min(grid.cols - 1, Math.floor(x / diameter)),
-      );
-      const row = Math.max(
-        0,
-        Math.min(grid.rows - 1, Math.floor(y / diameter)),
-      );
-      const index = row * grid.cols + col;
+      const { cols, rows } = gridRef.current;
+      const col = Math.max(0, Math.min(cols - 1, Math.floor(x / diameter)));
+      const row = Math.max(0, Math.min(rows - 1, Math.floor(y / diameter)));
+      const index = row * cols + col;
 
       if (index !== lastCellRef.current) {
         lastCellRef.current = index;
-        activateDot(index);
+        activateCell(index);
+
+        // Also activate adjacent cells with slight delay for ripple effect
+        const adjacentOffsets = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+        ];
+        adjacentOffsets.forEach(([dx, dy]) => {
+          const adjCol = col + dx;
+          const adjRow = row + dy;
+          if (adjCol >= 0 && adjCol < cols && adjRow >= 0 && adjRow < rows) {
+            const adjIndex = adjRow * cols + adjCol;
+            if (!activeCellsRef.current.has(adjIndex)) {
+              setTimeout(() => {
+                activeCellsRef.current.set(adjIndex, {
+                  color: pickColor(),
+                  start: Date.now(),
+                });
+                ensureFrame();
+              }, 40);
+            }
+          }
+        });
       }
     };
 
@@ -159,59 +255,31 @@ const ProximityBackground = ({
       container.removeEventListener('pointermove', handlePointerMove);
       container.removeEventListener('pointerleave', handlePointerLeave);
     };
-  }, [containerRef, diameter, disabled, dotCount, fadeDelay, grid.cols, grid.rows]);
+  }, [containerRef, diameter, disabled, ensureFrame]);
 
+  // Cleanup
   useEffect(
     () => () => {
-      activeTimeoutsRef.current.forEach((timer) => window.clearTimeout(timer));
-      activeTimeoutsRef.current.clear();
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
+      }
     },
     [],
   );
 
   return (
-    <div ref={rootRef} className='newapi-proximity-background' aria-hidden='true'>
-      <div
-        className='newapi-proximity-background__grid'
+    <div className='newapi-proximity-background' aria-hidden='true'>
+      <canvas
+        ref={canvasRef}
+        className='newapi-proximity-background__canvas'
         style={{
-          gridTemplateColumns: `repeat(${grid.cols}, minmax(0, ${diameter}px))`,
-          gridAutoRows: `${diameter}px`,
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
         }}
-      >
-        {dots.map((index) => {
-          const glowColor = activeDots[index];
-          const isActive = Boolean(glowColor);
-
-          return (
-            <motion.div
-              key={index}
-              className='newapi-proximity-background__cell'
-              animate={{
-                backgroundColor: isActive ? '#06090f' : '#05070d',
-                boxShadow: isActive
-                  ? `0 0 0 1px ${glowColor} inset, 0 0 18px 1px ${glowColor}`
-                  : '0 0 0 1px rgba(148, 163, 184, 0.08) inset, 0 0 0 0 rgba(0, 0, 0, 0)',
-              }}
-              transition={{
-                duration: 0.18,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
-              <motion.div
-                className='newapi-proximity-background__dot'
-                animate={{
-                  backgroundColor: isActive ? glowColor : '#0f172a',
-                  scale: isActive ? 1 : 0.84,
-                }}
-                transition={{
-                  duration: 0.18,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              />
-            </motion.div>
-          );
-        })}
-      </div>
+      />
     </div>
   );
 };

@@ -2056,6 +2056,152 @@ html.dark .newapi-circle-menu__label {
   }
 }
 
+/* ==================== SentenceFlip 文字翻转动效 ==================== */
+.newapi-sentence-flip {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 0.22em;
+  row-gap: 0;
+  min-height: 2.1em;
+  line-height: 0.98;
+}
+
+.newapi-sentence-flip__slot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-width: calc(var(--sentence-slot-ch, 4) * 0.58em);
+  height: 1.15em;
+}
+
+.newapi-sentence-flip__word {
+  display: block;
+  white-space: nowrap;
+  will-change: transform, opacity, filter;
+}
+
+.newapi-sentence-flip__word.is-highlighted {
+  background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 32%, #818cf8 68%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 28px rgba(125, 211, 252, 0.4));
+}
+
+.newapi-sentence-flip__word.is-placeholder {
+  visibility: hidden;
+}
+
+/* ==================== Home 首页顶栏覆盖 ==================== */
+body.newapi-home-route header {
+  background: rgba(2, 6, 23, 0.52) !important;
+  backdrop-filter: blur(22px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.5) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(2, 6, 23, 0.4);
+}
+
+html.dark body.newapi-home-route header {
+  background: rgba(2, 6, 23, 0.62) !important;
+  border-bottom-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+/* — Logo: bright white with glow — */
+body.newapi-home-route header a img[alt="logo"] {
+  filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.5)) brightness(1.1);
+}
+
+body.newapi-home-route header h4,
+body.newapi-home-route header h4 .semi-typography {
+  color: #fff !important;
+  text-shadow: 0 0 18px rgba(96, 165, 250, 0.35);
+  font-weight: 700 !important;
+}
+
+/* — Nav links: light and readable — */
+body.newapi-home-route header nav a,
+body.newapi-home-route header nav a span {
+  color: rgba(248, 250, 252, 0.82) !important;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+body.newapi-home-route header nav a:hover,
+body.newapi-home-route header nav a:hover span {
+  color: #fff !important;
+  text-shadow: 0 0 12px rgba(125, 211, 252, 0.4);
+}
+
+/* — Action buttons (theme, lang, notifications): subtle light — */
+body.newapi-home-route header > div > div > div:last-child button,
+body.newapi-home-route header > div > div > div:last-child span {
+  color: rgba(226, 232, 240, 0.82) !important;
+}
+
+body.newapi-home-route header > div > div > div:last-child button:hover {
+  color: #fff !important;
+}
+
+/* — Login button: frosted glass with bright text — */
+body.newapi-home-route header .semi-button-tertiary {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.22s ease;
+}
+
+body.newapi-home-route header .semi-button-tertiary span {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+}
+
+body.newapi-home-route header .semi-button-tertiary:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+body.newapi-home-route header .semi-button-tertiary:hover span {
+  color: #fff !important;
+}
+
+/* — Register button: vibrant gradient CTA — */
+body.newapi-home-route header .semi-button-primary {
+  background: linear-gradient(135deg, #2563eb, #06b6d4) !important;
+  border: none !important;
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.3),
+    0 6px 20px rgba(37, 99, 235, 0.4),
+    0 0 16px rgba(6, 182, 212, 0.2) !important;
+  transition: all 0.22s ease;
+}
+
+body.newapi-home-route header .semi-button-primary span {
+  color: #fff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.newapi-home-route header .semi-button-primary:hover {
+  background: linear-gradient(135deg, #3b82f6, #22d3ee) !important;
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    0 8px 28px rgba(37, 99, 235, 0.5),
+    0 0 22px rgba(6, 182, 212, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Light mode footer transition */
+body.newapi-home-route .semi-layout-footer,
+body.newapi-home-route .semi-layout-footer > div > footer {
+  color: var(--semi-color-text-0);
+}
+
 /* ==================== Home StackBits 风格覆盖 ==================== */
 .newapi-home-page {
   min-height: 100vh;
@@ -2109,6 +2255,19 @@ html.dark .newapi-circle-menu__label {
   filter: blur(0.6px);
   opacity: 0.72;
   animation: none;
+}
+
+/* Hero depth overlay — adds layered fog for depth */
+.newapi-home-hero__depth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(56, 189, 248, 0.08), transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(251, 146, 60, 0.06), transparent 35%),
+    radial-gradient(ellipse at 50% 80%, rgba(129, 140, 248, 0.06), transparent 40%),
+    linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.3) 50%, rgba(2, 6, 23, 0.7) 100%);
 }
 
 .newapi-stack-shell {
@@ -2189,26 +2348,9 @@ html.dark .newapi-circle-menu__label {
   mask-image: radial-gradient(circle at center, #000 72%, transparent 100%);
 }
 
-.newapi-proximity-background__grid {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  width: 100%;
-  height: 100%;
-}
-
-.newapi-proximity-background__cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.newapi-proximity-background__dot {
-  width: 22%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #0f172a;
-  box-shadow: 0 0 10px 0 rgba(15, 23, 42, 0.1);
+.newapi-proximity-background__canvas {
+  display: block;
+  image-rendering: auto;
 }
 
 .newapi-stack-provider-icons {
@@ -2438,20 +2580,18 @@ html.dark .newapi-circle-menu__label {
   }
 }
 
-.newapi-stack-title {
+.newapi-stack-title-wrap {
   position: relative;
   z-index: 4;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  column-gap: 0.22em;
-  row-gap: 0;
-  margin: 28px 0 0 !important;
-  min-height: 2.1em;
+  width: 100%;
+  max-width: 960px;
+  margin-top: 28px;
+}
+
+.newapi-stack-title {
   color: #f8fafc !important;
   font-size: clamp(52px, 6.2vw, 86px) !important;
   font-weight: 900 !important;
-  line-height: 0.98 !important;
   letter-spacing: -0.065em !important;
   text-shadow:
     0 2px 0 rgba(255, 255, 255, 0.18),
@@ -2470,7 +2610,7 @@ html.dark .newapi-circle-menu__label {
 }
 
 .newapi-stack-subtitle {
-  display: none;
+  display: block;
   max-width: 870px;
   margin: 18px auto 0 !important;
   color: rgba(226, 232, 240, 0.76) !important;
@@ -2688,19 +2828,35 @@ html.dark .newapi-circle-menu__label {
   z-index: 1;
   min-height: 372px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.88);
   border-radius: 30px;
   background:
-    radial-gradient(circle at 18% 16%, rgba(219, 234, 254, 0.95), transparent 30%),
-    radial-gradient(circle at 84% 18%, rgba(254, 215, 170, 0.52), transparent 28%),
-    linear-gradient(180deg, #fff 0%, #f8fafc 68%, #edf2f7 100%);
+    radial-gradient(circle at 18% 16%, rgba(219, 234, 254, 0.92), transparent 30%),
+    radial-gradient(circle at 84% 18%, rgba(254, 215, 170, 0.48), transparent 28%),
+    radial-gradient(circle at 50% 90%, rgba(241, 245, 249, 0.9), transparent 40%),
+    linear-gradient(180deg, #fff 0%, #f8fafc 55%, #eef2f7 100%);
   box-shadow:
-    0 26px 78px rgba(2, 6, 23, 0.42),
-    0 72px 130px rgba(2, 6, 23, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    0 4px 6px rgba(2, 6, 23, 0.06),
+    0 26px 78px rgba(2, 6, 23, 0.38),
+    0 72px 130px rgba(2, 6, 23, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.04);
   transition:
-    transform 0.28s ease,
-    box-shadow 0.28s ease;
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.newapi-stack-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 22% 28%, rgba(96, 165, 250, 0.08), transparent 25%),
+    radial-gradient(circle at 78% 72%, rgba(251, 146, 60, 0.06), transparent 22%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4), transparent 50%);
+  pointer-events: none;
 }
 
 body.newapi-home-route .semi-layout-footer {
@@ -2733,11 +2889,13 @@ body.newapi-home-route .semi-layout-footer > div > footer {
 }
 
 .newapi-stack-stage:hover .newapi-stack-preview {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   box-shadow:
-    0 30px 86px rgba(2, 6, 23, 0.44),
-    0 86px 150px rgba(37, 99, 235, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+    0 4px 8px rgba(2, 6, 23, 0.08),
+    0 32px 88px rgba(2, 6, 23, 0.42),
+    0 88px 160px rgba(37, 99, 235, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.03);
 }
 
 .newapi-stack-preview::before {
@@ -2824,26 +2982,51 @@ body.newapi-home-route .semi-layout-footer > div > footer {
   padding: 18px;
   border-radius: 23px;
   color: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.88);
-  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88)),
+    rgba(255, 255, 255, 0.78);
   box-shadow:
-    0 24px 66px rgba(15, 23, 42, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(18px);
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 12px 36px rgba(15, 23, 42, 0.12),
+    0 24px 66px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.03);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
   transform: translateX(-50%);
   transition:
-    transform 0.24s ease,
-    box-shadow 0.24s ease,
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.24s ease;
 }
 
+.newapi-stack-access-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(251, 146, 60, 0.15), rgba(192, 132, 252, 0.15));
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.newapi-stack-access-card:hover::before {
+  opacity: 1;
+}
+
 .newapi-stack-access-card:hover {
-  background: rgba(255, 255, 255, 0.94);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94)),
+    rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 28px 72px rgba(15, 23, 42, 0.22),
-    0 0 0 4px rgba(96, 165, 250, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  transform: translateX(-50%) translateY(-3px);
+    0 2px 4px rgba(15, 23, 42, 0.06),
+    0 16px 42px rgba(15, 23, 42, 0.16),
+    0 28px 72px rgba(15, 23, 42, 0.2),
+    0 0 0 4px rgba(96, 165, 250, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  transform: translateX(-50%) translateY(-4px);
 }
 
 .newapi-stack-access-card__meta {
@@ -3148,8 +3331,11 @@ html.dark .newapi-home-page {
     height: 27px;
   }
 
+  .newapi-stack-title-wrap {
+    margin-top: 20px;
+  }
+
   .newapi-stack-title {
-    margin-top: 20px !important;
     font-size: clamp(48px, 5.4vw, 74px) !important;
   }
 
@@ -3260,8 +3446,11 @@ html.dark .newapi-home-page {
     transform: scale(0.94);
   }
 
+  .newapi-stack-title-wrap {
+    margin-top: 22px;
+  }
+
   .newapi-stack-title {
-    margin-top: 22px !important;
     font-size: clamp(46px, 5.2vw, 68px) !important;
   }
 
@@ -3334,15 +3523,14 @@ html.dark .newapi-home-page {
     display: none;
   }
 
-  .newapi-stack-title {
-    display: grid;
-    justify-items: center;
-    width: 100%;
+  .newapi-stack-title-wrap {
     max-width: calc(100vw - 28px);
-    margin-top: 24px !important;
+    margin-top: 24px;
+  }
+
+  .newapi-stack-title {
     font-size: clamp(36px, 12.4vw, 52px) !important;
     letter-spacing: -0.055em !important;
-    line-height: 1.04 !important;
   }
 
   .newapi-stack-subtitle {

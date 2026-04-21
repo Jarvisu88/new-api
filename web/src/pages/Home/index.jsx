@@ -39,6 +39,7 @@ import {
 import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   AzureAI,
   Claude,
@@ -65,12 +66,13 @@ import { API, copy, showError, showSuccess } from '../../helpers';
 import NoticeModal from '../../components/layout/NoticeModal';
 import ProximityBackground from '../../components/common/ProximityBackground';
 import ProximityProviderIcons from '../../components/common/ProximityProviderIcons';
+import SentenceFlip from '../../components/common/SentenceFlip';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 
-const { Text, Title, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 const getProviderKey = (label) =>
   `${label}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -131,6 +133,37 @@ const quickLinkIconMap = {
   topup: WalletCards,
 };
 
+/* -------- Stagger animation variants -------- */
+const staggerContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.10, delayChildren: 0.15 },
+  },
+};
+
+const fadeUpItem = {
+  hidden: { opacity: 0, y: 32, filter: 'blur(8px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.62, ease: [0.16, 1, 0.3, 1] },
+  },
+};
+
+const fadeScaleItem = {
+  hidden: { opacity: 0, scale: 0.92, filter: 'blur(6px)' },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { duration: 0.72, ease: [0.16, 1, 0.3, 1] },
+  },
+};
+
+/* -------- Circle Menu spring config -------- */
+const menuSpring = { type: 'spring', stiffness: 420, damping: 28, mass: 0.8 };
+
 const Home = () => {
   const { t, i18n } = useTranslation();
   const [statusState] = useContext(StatusContext);
@@ -155,6 +188,8 @@ const Home = () => {
     normalizedServerAddress,
     currentEndpoint,
   );
+
+  /* -------- SentenceFlip data -------- */
   const heroHeadlineSentences = useMemo(
     () => [
       {
@@ -190,8 +225,8 @@ const Home = () => {
     ],
     [t],
   );
-  const heroHeadline = heroHeadlineSentences[0]?.parts || [];
 
+  /* -------- Quick Links -------- */
   const quickLinks = useMemo(() => {
     const links = [
       {
@@ -242,29 +277,20 @@ const Home = () => {
     t,
   ]);
 
-  const radialQuickLinks = useMemo(
-    () =>
-      quickLinks.map((item, index) => {
-        const Icon = quickLinkIconMap[item.key] || ArrowUpRight;
-        const angle = -180 + index * (90 / Math.max(quickLinks.length - 1, 1));
-        const radius = isMobile ? 0 : 116;
-        const x = Math.cos((angle * Math.PI) / 180) * radius;
-        const y = Math.sin((angle * Math.PI) / 180) * radius;
+  /* -------- CircleMenu positions (spring-animated) -------- */
+  const circleMenuItems = useMemo(() => {
+    const total = quickLinks.length;
+    const radius = isMobile ? 0 : 116;
+    return quickLinks.map((item, index) => {
+      const Icon = quickLinkIconMap[item.key] || ArrowUpRight;
+      const angle = -180 + index * (90 / Math.max(total - 1, 1));
+      const x = Math.cos((angle * Math.PI) / 180) * radius;
+      const y = Math.sin((angle * Math.PI) / 180) * radius;
+      return { ...item, Icon, x, y, index };
+    });
+  }, [isMobile, quickLinks]);
 
-        return {
-          ...item,
-          Icon,
-          style: {
-            '--menu-x': `${x}px`,
-            '--menu-y': `${y}px`,
-            '--menu-index': index,
-          },
-        };
-      }),
-    [isMobile, quickLinks],
-  );
-
-
+  /* -------- Data fetching -------- */
   const postIframeThemeAndLang = () => {
     const iframe = iframeRef.current;
     if (!iframe?.contentWindow) {
@@ -299,6 +325,7 @@ const Home = () => {
     }
   };
 
+  /* -------- Effects -------- */
   useEffect(() => {
     const checkNoticeAndShow = async () => {
       const lastCloseDate = localStorage.getItem('notice_close_date');
@@ -354,6 +381,7 @@ const Home = () => {
     );
   }
 
+  /* ==================== Default Home ==================== */
   const renderDefaultHome = () => (
     <div className='newapi-home-page'>
       <section ref={heroRef} className='newapi-home-hero'>
@@ -362,13 +390,24 @@ const Home = () => {
           diameter={isMobile ? 38 : 54}
           disabled={isMobile}
         />
-        <div className='newapi-stack-shell'>
+
+        {/* Layered depth overlays */}
+        <div className='newapi-home-hero__depth' aria-hidden='true' />
+
+        <motion.div
+          className='newapi-stack-shell'
+          variants={staggerContainer}
+          initial='hidden'
+          animate='visible'
+        >
           <div className='newapi-stack-hero-copy'>
-            <div className='newapi-stack-kicker'>
+            {/* Kicker Tag */}
+            <motion.div className='newapi-stack-kicker' variants={fadeUpItem}>
               <span>{status.version || 'v0.12.14'}</span>
               <span>{t('统一 AI 网关')}</span>
-            </div>
+            </motion.div>
 
+            {/* Provider Icons - Static (hidden on desktop) */}
             <div
               className='newapi-stack-provider-icons'
               aria-label={t('支持的供应商')}
@@ -386,29 +425,34 @@ const Home = () => {
               ))}
             </div>
 
-            <ProximityProviderIcons
-              items={providerItems}
-              ariaLabel={t('鏀寔鐨勪緵搴斿晢')}
-              disabled={isMobile}
-              className='newapi-stack-provider-icons--proximity'
-            />
+            {/* Provider Icons - Proximity Interactive */}
+            <motion.div variants={fadeUpItem}>
+              <ProximityProviderIcons
+                items={providerItems}
+                ariaLabel={t('支持的供应商')}
+                disabled={isMobile}
+                className='newapi-stack-provider-icons--proximity'
+              />
+            </motion.div>
 
-            <Title heading={1} className='newapi-stack-title'>
-              {heroHeadline.map((part, index) => (
-                <span
-                  key={`${part.text}-${index}`}
-                  className={part.highlight ? 'newapi-stack-title__accent' : ''}
-                >
-                  {part.text}
-                </span>
-              ))}
-            </Title>
+            {/* ★ SentenceFlip Title - Word-by-word animated headline */}
+            <motion.div variants={fadeUpItem} className='newapi-stack-title-wrap'>
+              <SentenceFlip
+                sentences={heroHeadlineSentences}
+                className='newapi-stack-title'
+                interval={2600}
+              />
+            </motion.div>
 
-            <Paragraph className='newapi-stack-subtitle'>
-              {t('new-api 将 OpenAI、Claude、Gemini、Azure、DeepSeek 等众多供应商收束成统一 API，复制接入 URL 就能切换你的模型基址。')}
-            </Paragraph>
+            {/* Subtitle */}
+            <motion.div variants={fadeUpItem}>
+              <Paragraph className='newapi-stack-subtitle'>
+                {t('new-api 将 OpenAI、Claude、Gemini、Azure、DeepSeek 等众多供应商收束成统一 API，复制接入 URL 就能切换你的模型基址。')}
+              </Paragraph>
+            </motion.div>
 
-            <div className='newapi-stack-actions'>
+            {/* CTA Buttons */}
+            <motion.div className='newapi-stack-actions' variants={fadeUpItem}>
               <Link
                 to='/console'
                 className='newapi-stack-action newapi-stack-action--dark'
@@ -428,12 +472,14 @@ const Home = () => {
                   <Copy size={17} />
                 </span>
               </button>
-            </div>
+            </motion.div>
           </div>
 
-          <section
+          {/* Stage Preview Section */}
+          <motion.section
             className='newapi-stack-stage'
             aria-label={t('new-api 接入预览')}
+            variants={fadeScaleItem}
           >
             <div className='newapi-stack-stage__grain' aria-hidden='true' />
             <div className='newapi-stack-preview'>
@@ -518,22 +564,37 @@ const Home = () => {
                 </span>
               </Link>
             </div>
-          </section>
-        </div>
+          </motion.section>
+        </motion.div>
       </section>
 
+      {/* ★ CircleMenu - Spring-animated radial quick access */}
       <div className={`newapi-circle-menu ${ctaOpen ? 'is-open' : ''}`}>
         <div className='newapi-circle-menu__items' aria-hidden={!ctaOpen}>
-          {radialQuickLinks.map((item) => {
+          {circleMenuItems.map((item) => {
             const { Icon } = item;
-            const menuItem = (
+            const menuContent = (
               <>
-                <span className='newapi-circle-menu__icon'>
+                <motion.span
+                  className='newapi-circle-menu__icon'
+                  animate={
+                    ctaOpen
+                      ? { scale: 1, rotate: 0 }
+                      : { scale: 0.6, rotate: -45 }
+                  }
+                  transition={menuSpring}
+                >
                   <Icon size={17} />
-                </span>
+                </motion.span>
                 <span className='newapi-circle-menu__label'>{item.label}</span>
               </>
             );
+
+            const itemStyle = {
+              '--menu-x': `${item.x}px`,
+              '--menu-y': `${item.y}px`,
+              '--menu-index': item.index,
+            };
 
             return item.external ? (
               <a
@@ -542,20 +603,20 @@ const Home = () => {
                 target='_blank'
                 rel='noreferrer'
                 className='newapi-circle-menu__item'
-                style={item.style}
+                style={itemStyle}
                 tabIndex={ctaOpen ? 0 : -1}
               >
-                {menuItem}
+                {menuContent}
               </a>
             ) : (
               <Link
                 key={item.label}
                 to={item.to}
                 className='newapi-circle-menu__item'
-                style={item.style}
+                style={itemStyle}
                 tabIndex={ctaOpen ? 0 : -1}
               >
-                {menuItem}
+                {menuContent}
               </Link>
             );
           })}
@@ -568,19 +629,52 @@ const Home = () => {
           </Paragraph>
         </div>
 
-        <button
+        <motion.button
           type='button'
           className='newapi-circle-menu__trigger'
           onClick={() => setCtaOpen((prev) => !prev)}
           aria-expanded={ctaOpen}
           aria-label={ctaOpen ? t('收起快捷入口') : t('展开快捷入口')}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          animate={ctaOpen ? { rotate: 135 } : { rotate: 0 }}
+          transition={menuSpring}
         >
           <span className='newapi-circle-menu__trigger-glow' />
-          {ctaOpen ? <X size={22} /> : <Sparkles size={22} />}
-          <span className='newapi-circle-menu__trigger-text'>
+          <AnimatePresence mode='wait'>
+            {ctaOpen ? (
+              <motion.span
+                key='close'
+                initial={{ opacity: 0, scale: 0.5, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 0.5, filter: 'blur(8px)' }}
+                transition={{ duration: 0.2 }}
+                style={{ position: 'relative', zIndex: 1 }}
+              >
+                <X size={22} />
+              </motion.span>
+            ) : (
+              <motion.span
+                key='open'
+                initial={{ opacity: 0, scale: 0.5, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 0.5, filter: 'blur(8px)' }}
+                transition={{ duration: 0.2 }}
+                style={{ position: 'relative', zIndex: 1 }}
+              >
+                <Sparkles size={22} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <motion.span
+            className='newapi-circle-menu__trigger-text'
+            animate={ctaOpen ? { rotate: -135 } : { rotate: 0 }}
+            transition={menuSpring}
+            style={{ position: 'relative', zIndex: 1 }}
+          >
             {ctaOpen ? t('收起') : t('快捷')}
-          </span>
-        </button>
+          </motion.span>
+        </motion.button>
       </div>
 
     </div>

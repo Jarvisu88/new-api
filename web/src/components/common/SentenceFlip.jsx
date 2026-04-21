@@ -108,17 +108,18 @@ const SentenceFlip = ({ sentences = [], className = '', interval = 2600 }) => {
             <AnimatePresence mode='wait' initial={false}>
               <motion.span
                 key={`${currentIndex}-${partIndex}-${part.text || 'blank'}`}
-                initial={{ opacity: 0, filter: 'blur(12px)', y: 22 }}
+                initial={{ opacity: 0, filter: 'blur(14px)', y: 28, scale: 0.92 }}
                 animate={{
                   opacity: part.text ? 1 : 0,
                   filter: 'blur(0px)',
                   y: 0,
+                  scale: 1,
                 }}
-                exit={{ opacity: 0, filter: 'blur(12px)', y: -22 }}
+                exit={{ opacity: 0, filter: 'blur(14px)', y: -28, scale: 0.92 }}
                 transition={{
-                  duration: 0.28,
-                  ease: [0.22, 1, 0.36, 1],
-                  delay: partIndex * 0.09,
+                  duration: 0.38,
+                  ease: [0.16, 1, 0.3, 1],
+                  delay: partIndex * 0.08,
                 }}
                 className={`newapi-sentence-flip__word${part.highlight ? ' is-highlighted' : ''}${part.text ? '' : ' is-placeholder'}`}
                 aria-hidden='true'

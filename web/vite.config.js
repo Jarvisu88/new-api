@@ -17,12 +17,131 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import react from '@vitejs/plugin-react';
-import { defineConfig, transformWithEsbuild } from 'vite';
-import pkg from '@douyinfe/vite-plugin-semi';
+import fs from 'fs';
+import { createRequire } from 'module';
 import path from 'path';
+import react from '@vitejs/plugin-react';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
-const { vitePluginSemi } = pkg;
+import { compileString, Logger } from 'sass';
+import { pathToFileURL } from 'url';
+import { defineConfig, transformWithEsbuild } from 'vite';
+
+const require = createRequire(import.meta.url);
+
+const transformPath = (filePath) =>
+  process.platform === 'win32' ? filePath.replace(/[\\]+/g, '/') : filePath;
+
+const convertMapToString = (map) =>
+  Object.keys(map).reduce((prev, curr) => `${prev}${curr}: ${map[curr]};\n`, '');
+
+const resolveSemiNodeModulesRoot = (filePath) => {
+  const marker = '/node_modules/';
+  const normalizedPath = transformPath(filePath);
+  const markerIndex = normalizedPath.lastIndexOf(marker);
+
+  if (markerIndex === -1) {
+    return '';
+  }
+
+  return normalizedPath.slice(0, markerIndex + marker.length);
+};
+
+const semiThemeLoader = (source, options = {}) => {
+  const {
+    name = '@douyinfe/semi-theme-default',
+    cssLayer,
+    variables,
+    prefixCls = 'semi',
+    include,
+  } = options;
+  const scssVarStr = `@import "~${name}/scss/index.scss";\n`;
+  const cssVarStr = `@import "~${name}/scss/global.scss";\n`;
+  const animationFile = `${name}/scss/animation.scss`;
+  const prefixClsStr = `$prefix: '${prefixCls}';\n`;
+  const shouldInject = source.includes('semi-base');
+
+  let animationStr = '';
+  try {
+    require.resolve(animationFile);
+    animationStr = `@import "~${animationFile}";\n`;
+  } catch {
+    animationStr = '';
+  }
+
+  if (include || variables) {
+    let localImport = '';
+    if (include) {
+      localImport += `\n@import "${transformPath(include)}";`;
+    }
+    if (variables) {
+      localImport += `\n${variables}`;
+    }
+
+    const regex = /(@import '.\/variables.scss';?|@import ".\/variables.scss";?)/g;
+    const fileSplit = source.split(regex).filter(Boolean);
+    if (fileSplit.length > 1) {
+      fileSplit.splice(fileSplit.length - 1, 0, localImport);
+      source = fileSplit.join('');
+    }
+  }
+
+  let finalCSSStr = shouldInject
+    ? `${animationStr}${cssVarStr}${scssVarStr}${prefixClsStr}${source}`
+    : `${scssVarStr}${prefixClsStr}${source}`;
+
+  if (cssLayer) {
+    finalCSSStr = `@layer semi{${finalCSSStr}}`;
+  }
+
+  return finalCSSStr;
+};
+
+const vitePluginSemiCompat = (options = {}) => ({
+  name: 'vite-plugin-semi-compat',
+  load(id) {
+    const filePath = transformPath(id);
+    const normalizedInclude = options.include
+      ? transformPath(options.include)
+      : undefined;
+
+    if (!/@douyinfe\/semi-(ui|icons|foundation)\/lib\/.+\.css$/.test(filePath)) {
+      return null;
+    }
+
+    const scssFilePath = filePath.replace(/\.css$/, '.scss');
+    const nodeModulesRoot = resolveSemiNodeModulesRoot(scssFilePath);
+    const semiLoaderOptions = {
+      name: typeof options.theme === 'string' ? options.theme : options.theme?.name,
+      cssLayer: options.cssLayer,
+      include: normalizedInclude,
+      prefixCls: options.prefixCls,
+      variables: convertMapToString(options.variables || {}),
+    };
+    const originalScssRaw = fs.readFileSync(scssFilePath, 'utf-8');
+    const newScssRaw = semiThemeLoader(originalScssRaw, semiLoaderOptions);
+
+    return compileString(newScssRaw, {
+      importers: [
+        {
+          findFileUrl(url) {
+            if (url.startsWith('~')) {
+              const targetPath = path.resolve(nodeModulesRoot, url.substring(1));
+              return pathToFileURL(targetPath);
+            }
+
+            const resolvedPath = path.resolve(path.dirname(scssFilePath), url);
+            if (fs.existsSync(resolvedPath)) {
+              return pathToFileURL(resolvedPath);
+            }
+
+            return null;
+          },
+        },
+      ],
+      logger: Logger.silent,
+    }).css;
+  },
+});
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -51,7 +170,11 @@ export default defineConfig({
       },
     },
     react(),
-    vitePluginSemi({
+    // Upstream vite-plugin-semi uses a `\S*\/node_modules\/` regex internally.
+    // The current workspace path contains a space (`F:\newapi code\...`), which
+    // makes Sass `~@douyinfe/...` imports fail during build/dev. Keep the same
+    // behavior locally, but resolve node_modules robustly for space-containing paths.
+    vitePluginSemiCompat({
       cssLayer: true,
     }),
   ],
