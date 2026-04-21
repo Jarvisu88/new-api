@@ -65,13 +65,35 @@ import { API, copy, showError, showSuccess } from '../../helpers';
 import NoticeModal from '../../components/layout/NoticeModal';
 import ProximityBackground from '../../components/common/ProximityBackground';
 import ProximityProviderIcons from '../../components/common/ProximityProviderIcons';
-import SentenceFlip from '../../components/common/SentenceFlip';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 
 const { Text, Title, Paragraph } = Typography;
+
+const getProviderKey = (label) =>
+  `${label}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const GeminiProviderMark = ({ size = 22 }) => (
+  <span
+    className='newapi-provider-brand-avatar newapi-provider-brand-avatar--gemini'
+    style={{ '--provider-brand-size': `${Math.max(24, size + 6)}px` }}
+    aria-hidden='true'
+  >
+    <Gemini.Avatar size={Math.max(24, size + 6)} shape='square' />
+  </span>
+);
+
+const MinimaxProviderMark = ({ size = 22 }) => (
+  <span
+    className='newapi-provider-brand-avatar newapi-provider-brand-avatar--minimax'
+    style={{ '--provider-brand-size': `${Math.max(24, size + 6)}px` }}
+    aria-hidden='true'
+  >
+    <Minimax.Avatar size={Math.max(24, size + 6)} shape='square' />
+  </span>
+);
 
 const providerItems = [
   { label: 'Moonshot', Icon: Moonshot },
@@ -81,9 +103,9 @@ const providerItems = [
   { label: 'Volcengine', Icon: Volcengine.Color },
   { label: 'Cohere', Icon: Cohere.Color },
   { label: 'Claude', Icon: Claude.Color },
-  { label: 'Gemini', Icon: Gemini.Color },
+  { label: 'Gemini', Icon: GeminiProviderMark },
   { label: 'Suno', Icon: Suno },
-  { label: 'MiniMax', Icon: Minimax.Color },
+  { label: 'MiniMax', Icon: MinimaxProviderMark },
   { label: 'Wenxin', Icon: Wenxin.Color },
   { label: 'Spark', Icon: Spark.Color },
   { label: 'Qingyan', Icon: Qingyan.Color },
@@ -168,6 +190,7 @@ const Home = () => {
     ],
     [t],
   );
+  const heroHeadline = heroHeadlineSentences[0]?.parts || [];
 
   const quickLinks = useMemo(() => {
     const links = [
@@ -301,6 +324,14 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    document.body.classList.add('newapi-home-route');
+
+    return () => {
+      document.body.classList.remove('newapi-home-route');
+    };
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setEndpointIndex((prev) => (prev + 1) % endpointItems.length);
     }, 2800);
@@ -348,6 +379,7 @@ const Home = () => {
                   className='newapi-stack-provider-icon'
                   style={{ '--icon-index': index }}
                   title={label}
+                  data-provider={getProviderKey(label)}
                 >
                   <Icon size={22} />
                 </span>
@@ -362,7 +394,14 @@ const Home = () => {
             />
 
             <Title heading={1} className='newapi-stack-title'>
-              <SentenceFlip sentences={heroHeadlineSentences} />
+              {heroHeadline.map((part, index) => (
+                <span
+                  key={`${part.text}-${index}`}
+                  className={part.highlight ? 'newapi-stack-title__accent' : ''}
+                >
+                  {part.text}
+                </span>
+              ))}
             </Title>
 
             <Paragraph className='newapi-stack-subtitle'>
@@ -443,14 +482,17 @@ const Home = () => {
 
               <div className='newapi-stack-provider-board'>
                 {providerItems.slice(0, 8).map(({ label, Icon }, index) => (
-                  <div
+                  <button
+                    type='button'
                     key={label}
                     className='newapi-stack-provider-tile'
                     style={{ '--provider-index': index }}
+                    data-provider={getProviderKey(label)}
+                    aria-label={label}
                   >
                     <Icon size={24} />
                     <span>{label}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>

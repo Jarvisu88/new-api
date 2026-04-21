@@ -21,6 +21,9 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+const getProviderKey = (label) =>
+  `${label}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 const ProximityProviderIcons = ({
   items = [],
   ariaLabel = '',
@@ -203,6 +206,27 @@ const ProximityProviderIcons = ({
       ensureFrame();
     };
 
+    const handleFocusIn = (event) => {
+      const index = itemRefs.current.indexOf(event.target);
+
+      if (index < 0 || !geometryRef.current[index]) {
+        return;
+      }
+
+      const geometry = geometryRef.current[index];
+      targetRef.current = {
+        x: geometry.x,
+        y: geometry.y,
+      };
+      activeRef.current = true;
+      ensureFrame();
+    };
+
+    const handleFocusOut = () => {
+      activeRef.current = false;
+      ensureFrame();
+    };
+
     measure();
     itemRefs.current.forEach(resetNode);
     container.dataset.tooltipActive = 'false';
@@ -215,6 +239,8 @@ const ProximityProviderIcons = ({
       container.addEventListener('pointermove', handlePointerMove);
       container.addEventListener('pointerleave', handlePointerLeave);
     }
+    container.addEventListener('focusin', handleFocusIn);
+    container.addEventListener('focusout', handleFocusOut);
 
     return () => {
       stopFrame();
@@ -225,6 +251,8 @@ const ProximityProviderIcons = ({
         container.removeEventListener('pointermove', handlePointerMove);
         container.removeEventListener('pointerleave', handlePointerLeave);
       }
+      container.removeEventListener('focusin', handleFocusIn);
+      container.removeEventListener('focusout', handleFocusOut);
     };
   }, [disabled, visibleItems]);
 
@@ -240,11 +268,15 @@ const ProximityProviderIcons = ({
           ref={(node) => {
             itemRefs.current[index] = node;
           }}
+          role='button'
           className='newapi-stack-provider-icon'
           style={{ '--icon-index': index }}
           title={label}
+          aria-label={label}
           data-label={label}
+          data-provider={getProviderKey(label)}
           data-active='false'
+          tabIndex={0}
         >
           <Icon size={22} />
         </span>
