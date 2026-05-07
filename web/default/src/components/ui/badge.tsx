@@ -1,81 +1,23 @@
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-export type BadgeColor =
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'info'
-  | 'neutral'
-  | 'blue'
-  | 'green'
-  | 'cyan'
-  | 'purple'
-  | 'pink'
-  | 'red'
-  | 'orange'
-  | 'amber'
-  | 'yellow'
-  | 'lime'
-  | 'light-green'
-  | 'teal'
-  | 'light-blue'
-  | 'indigo'
-  | 'violet'
-  | 'grey'
-
-export const badgeColorMap: Record<BadgeColor, string> = {
-  success:
-    'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400',
-  warning:
-    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400',
-  danger:
-    'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400',
-  info: 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-400',
-  neutral:
-    'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400',
-  blue: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-400',
-  green:
-    'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-400',
-  cyan: 'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-400',
-  purple:
-    'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-400',
-  pink: 'border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-800 dark:bg-pink-950/40 dark:text-pink-400',
-  red: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400',
-  orange:
-    'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-400',
-  amber:
-    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400',
-  yellow:
-    'border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-400',
-  lime: 'border-lime-200 bg-lime-50 text-lime-700 dark:border-lime-800 dark:bg-lime-950/40 dark:text-lime-400',
-  'light-green':
-    'border-green-200 bg-green-50 text-green-600 dark:border-green-800 dark:bg-green-950/40 dark:text-green-400',
-  teal: 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-400',
-  'light-blue':
-    'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-400',
-  indigo:
-    'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400',
-  violet:
-    'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-400',
-  grey: 'border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-gray-950/40 dark:text-gray-400',
-}
-
 const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden',
+  'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!',
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
+        default: 'bg-primary text-primary-foreground [a]:hover:bg-primary/80',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
+          'bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80',
         destructive:
-          'border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+          'bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20',
         outline:
-          'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
+          'border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground',
+        ghost:
+          'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
+        link: 'text-primary underline-offset-4 hover:underline',
       },
     },
     defaultVariants: {
@@ -84,27 +26,72 @@ const badgeVariants = cva(
   }
 )
 
+const badgeColorClasses = {
+  neutral: 'bg-muted text-muted-foreground',
+  gray: 'bg-muted text-muted-foreground',
+  grey: 'bg-muted text-muted-foreground',
+  slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+  zinc: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
+  red: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+  orange: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  amber: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+  yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
+  lime: 'bg-lime-100 text-lime-800 dark:bg-lime-950 dark:text-lime-300',
+  'light-green':
+    'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+  green: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+  emerald:
+    'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+  teal: 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300',
+  cyan: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
+  sky: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+  'light-blue': 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+  blue: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300',
+  violet: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+  purple: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
+  fuchsia:
+    'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950 dark:text-fuchsia-300',
+  pink: 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300',
+  rose: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
+  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+  warning: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+  danger: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+  error: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+  info: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+} as const
+
+export type BadgeColor = keyof typeof badgeColorClasses
+
 function Badge({
   className,
-  variant,
+  variant = 'default',
   color,
-  asChild = false,
+  render,
   ...props
-}: React.ComponentProps<'span'> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean; color?: BadgeColor }) {
-  const Comp = asChild ? Slot : 'span'
-
-  return (
-    <Comp
-      data-slot='badge'
-      className={cn(
-        badgeVariants({ variant }),
-        color && badgeColorMap[color],
-        className
-      )}
-      {...props}
-    />
-  )
+}: useRender.ComponentProps<'span'> &
+  VariantProps<typeof badgeVariants> & {
+    color?: BadgeColor
+  }) {
+  return useRender({
+    defaultTagName: 'span',
+    props: mergeProps<'span'>(
+      {
+        className: cn(
+          badgeVariants({ variant: color ? 'secondary' : variant }),
+          color ? badgeColorClasses[color] : null,
+          className
+        ),
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: 'badge',
+      variant,
+      color,
+    },
+  })
 }
 
 export { Badge, badgeVariants }

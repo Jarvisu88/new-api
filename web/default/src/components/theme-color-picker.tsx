@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useThemeColor } from '@/context/theme-color-provider'
+import { useThemeCustomization } from '@/context/theme-customization-provider'
 import { PRESET_HUES, DEFAULT_HUE, hueToHex, hexToHue } from '@/lib/theme-color'
 import { Button } from '@/components/ui/button'
 
@@ -42,16 +42,19 @@ function SectionTitle({
 
 export function ThemeColorConfig() {
   const { t } = useTranslation()
-  const { hue, setHue, resetHue } = useThemeColor()
+  const {
+    customization: { customHue },
+    setCustomHue,
+  } = useThemeCustomization()
 
-  const activeHue = hue ?? DEFAULT_HUE
+  const activeHue = customHue ?? DEFAULT_HUE
 
   return (
     <div>
       <SectionTitle
         title={t('Theme Color')}
-        showReset={hue !== null}
-        onReset={resetHue}
+        showReset={customHue !== null}
+        onReset={() => setCustomHue(null)}
       />
       <div
         role='radiogroup'
@@ -65,7 +68,7 @@ export function ThemeColorConfig() {
             role='radio'
             aria-checked={activeHue === preset.hue}
             aria-label={preset.name}
-            onClick={() => setHue(preset.hue)}
+            onClick={() => setCustomHue(preset.hue)}
             className={cn(
               'rounded-full size-7 border-0 p-0 transition-shadow',
               activeHue === preset.hue &&
@@ -84,7 +87,7 @@ export function ThemeColorConfig() {
           value={hueToHex(activeHue)}
           onChange={(e) => {
             const newHue = hexToHue(e.target.value)
-            setHue(newHue)
+            setCustomHue(newHue)
           }}
           className='size-7 cursor-pointer rounded-md border border-border'
         />

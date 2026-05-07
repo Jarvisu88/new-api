@@ -1,7 +1,7 @@
 import { useNotifications } from '@/hooks/use-notifications'
 import { useTopNavLinks } from '@/hooks/use-top-nav-links'
-import { AvailabilityButton } from '@/components/availability-button'
 import { ConfigDrawer } from '@/components/config-drawer'
+import { AvailabilityButton } from '@/components/availability-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationButton } from '@/components/notification-button'
 import { NotificationDialog } from '@/components/notification-dialog'
@@ -10,6 +10,7 @@ import { Search } from '@/components/search'
 import { defaultTopNavLinks } from '../config/top-nav.config'
 import { type TopNavLink } from '../types'
 import { Header } from './header'
+import { SystemBrand } from './system-brand'
 import { TopNav } from './top-nav'
 
 /**
@@ -92,17 +93,23 @@ export function AppHeader({
   // Notifications hook
   const notifications = useNotifications()
 
-  // Determine left content: custom content > navigation bar > null
-  const leftSection =
-    leftContent || (showTopNav ? <TopNav links={links} /> : null)
-
   return (
     <>
       <Header>
-        {leftSection}
+        <SystemBrand variant='inline' />
+
+        {leftContent ? (
+          <div className='ms-2 flex items-center'>{leftContent}</div>
+        ) : null}
+
         {rightContent ?? (
-          <div className='ms-auto flex items-center space-x-4'>
-            {showSearch && <div className='hidden sm:block'><Search /></div>}
+          <div className='ms-auto flex items-center gap-1 sm:gap-2'>
+            {showTopNav && (
+              <div className='me-1 hidden lg:block'>
+                <TopNav links={links} />
+              </div>
+            )}
+            {showSearch && <Search />}
             <AvailabilityButton />
             {showNotifications && (
               <NotificationButton

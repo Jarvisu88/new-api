@@ -1,3 +1,4 @@
+import { TopBanner } from '@/components/top-banner'
 import type { TopNavLink } from '../types'
 import { PublicHeader, type PublicHeaderProps } from './public-header'
 
@@ -16,7 +17,8 @@ type PublicLayoutProps = {
 
 export function PublicLayout(props: PublicLayoutProps) {
   return (
-    <div className='bg-background text-foreground relative min-h-svh overflow-hidden'>
+    <div className='bg-background text-foreground relative min-h-svh overflow-x-clip'>
+      <TopBanner />
       <PublicHeader
         navContent={props.navContent}
         navLinks={props.navLinks}
