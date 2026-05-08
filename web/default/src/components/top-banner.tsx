@@ -11,8 +11,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { getBanner } from '@/lib/api'
 import { useBannerStore } from '@/stores/banner-store'
+import { getBanner } from '@/lib/api'
 
 type BannerMeta = {
   labelKey: string
@@ -53,7 +53,13 @@ const bannerTypes: Record<string, BannerMeta> = {
   },
 }
 
-type BannerType = 'notice' | 'maintenance' | 'important' | 'warning' | 'outage' | 'success'
+type BannerType =
+  | 'notice'
+  | 'maintenance'
+  | 'important'
+  | 'warning'
+  | 'outage'
+  | 'success'
 type BannerSpeed = 'slow' | 'medium' | 'fast'
 
 const allowedBannerPresets = new Set([
@@ -108,6 +114,15 @@ function normalizeBannerType(value: string): BannerType {
   return value in bannerTypes ? (value as BannerType) : 'notice'
 }
 
+function normalizeBannerMode(value: string): 'preset' | 'code' | 'visual' {
+  if (value === 'visual') return 'visual'
+  return value === 'code' ? 'code' : 'preset'
+}
+
+function normalizeBannerPreset(value: string): string {
+  return allowedBannerPresets.has(value) ? value : 'notice-glass'
+}
+
 function normalizeBoolean(value: string | undefined, fallback = true): boolean {
   if (value === 'true') return true
   if (value === 'false') return false
@@ -134,7 +149,10 @@ function sanitizeCSS(css: string): string {
 }
 
 function buildPresetStyle(preset: string, colors: string): React.CSSProperties {
-  const colorList = colors.split(',').map((c) => c.trim()).filter(Boolean)
+  const colorList = colors
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean)
   if (colorList.length === 0) return {}
 
   return colorList.slice(0, 4).reduce<React.CSSProperties>(
@@ -143,7 +161,7 @@ function buildPresetStyle(preset: string, colors: string): React.CSSProperties {
       [`--banner-color-${index + 1}`]: color,
     }),
     preset === 'solid'
-      ? { '--banner-color-2': colorList[0] } as React.CSSProperties
+      ? ({ '--banner-color-2': colorList[0] } as React.CSSProperties)
       : {}
   )
 }
@@ -160,7 +178,12 @@ function buildVisualCSS(config: string): string {
         parts.push(`background-color: ${bg.stops[0].color};`)
       } else if (bg.type === 'gradient' && bg.stops?.length) {
         const dir = bg.direction || 'to right'
-        const stops = bg.stops.map((s: { color: string; position: number }) => `${s.color} ${s.position}%`).join(', ')
+        const stops = bg.stops
+          .map(
+            (s: { color: string; position: number }) =>
+              `${s.color} ${s.position}%`
+          )
+          .join(', ')
         parts.push(`background: linear-gradient(${dir}, ${stops});`)
       }
     }
@@ -171,11 +194,17 @@ function buildVisualCSS(config: string): string {
       const duration = c.animation.duration || 8
       const direction = c.animation.direction || 'normal'
       if (c.animation.type === 'flow') {
-        parts.push(`animation: banner-flow ${duration}s ease infinite ${direction};`)
+        parts.push(
+          `animation: banner-flow ${duration}s ease infinite ${direction};`
+        )
       } else if (c.animation.type === 'pulse') {
-        parts.push(`animation: banner-pulse ${duration}s ease-in-out infinite ${direction};`)
+        parts.push(
+          `animation: banner-pulse ${duration}s ease-in-out infinite ${direction};`
+        )
       } else if (c.animation.type === 'blink') {
-        parts.push(`animation: banner-pulse ${duration}s step-end infinite ${direction};`)
+        parts.push(
+          `animation: banner-pulse ${duration}s step-end infinite ${direction};`
+        )
       }
     }
 
@@ -189,7 +218,8 @@ function scopeCustomSelector(selector: string, scope: string): string {
   const trimmed = selector.trim()
   if (!trimmed) return ''
   if (trimmed.includes('&')) return trimmed.replace(/&/g, scope)
-  if (trimmed.startsWith('.top-banner')) return trimmed.replace(/^\.top-banner/, scope)
+  if (trimmed.startsWith('.top-banner'))
+    return trimmed.replace(/^\.top-banner/, scope)
   if (trimmed.startsWith(':')) return `${scope}${trimmed}`
   return `${scope} ${trimmed}`
 }
@@ -219,23 +249,30 @@ function buildScopedCustomCSS(css: string): string {
     return ''
   })
 
-  source.replace(/([^{}]+)\{([^{}]*)\}/g, (_match, selectorText: string, body: string) => {
-    const scopedSelector = selectorText
-      .split(',')
-      .map((selector) => scopeCustomSelector(selector, scope))
-      .filter(Boolean)
-      .join(', ')
+  source.replace(
+    /([^{}]+)\{([^{}]*)\}/g,
+    (_match, selectorText: string, body: string) => {
+      const scopedSelector = selectorText
+        .split(',')
+        .map((selector) => scopeCustomSelector(selector, scope))
+        .filter(Boolean)
+        .join(', ')
 
-    if (scopedSelector && body.trim()) {
-      output.push(`${scopedSelector} { ${body.trim()} }`)
+      if (scopedSelector && body.trim()) {
+        output.push(`${scopedSelector} { ${body.trim()} }`)
+      }
+      return ''
     }
-    return ''
-  })
+  )
 
   return output.join('\n')
 }
 
-export function TopBanner() {
+type TopBannerProps = {
+  variant?: 'default' | 'workspace'
+}
+
+export function TopBanner({ variant = 'default' }: TopBannerProps) {
   const { t } = useTranslation()
   const { data: bannerResponse } = useQuery({
     queryKey: ['banner'],
@@ -256,14 +293,17 @@ export function TopBanner() {
     ? normalizeBannerType((bannerResponse.data?.type || 'notice').trim())
     : 'notice'
   const dismissible = bannerResponse?.success
-    ? normalizeBoolean((bannerResponse.data?.dismissible || 'true').trim(), true)
+    ? normalizeBoolean(
+        (bannerResponse.data?.dismissible || 'true').trim(),
+        true
+      )
     : true
   const mode = bannerResponse?.success
-    ? (bannerResponse.data?.mode || '').trim()
-    : ''
+    ? normalizeBannerMode((bannerResponse.data?.mode || '').trim())
+    : 'preset'
   const preset = bannerResponse?.success
-    ? (bannerResponse.data?.preset || '').trim()
-    : ''
+    ? normalizeBannerPreset((bannerResponse.data?.preset || '').trim())
+    : 'notice-glass'
   const colors = bannerResponse?.success
     ? (bannerResponse.data?.colors || '').trim()
     : ''
@@ -280,7 +320,20 @@ export function TopBanner() {
     ? (bannerResponse.data?.font_color || '').trim()
     : ''
 
-  const contentHash = hashString(content)
+  const contentHash = hashString(
+    JSON.stringify({
+      content,
+      type,
+      dismissible,
+      mode,
+      preset,
+      colors,
+      speed,
+      visualConfig,
+      customCSS,
+      fontColor,
+    })
+  )
 
   useLayoutEffect(() => {
     if (!content || !containerRef.current || !measureRef.current) {
@@ -358,19 +411,23 @@ export function TopBanner() {
     ? { color: fontColor }
     : {}
 
-  const presetClass = mode === 'preset' && preset
-    ? getPresetClassName(preset, speed)
-    : ''
+  const presetClass =
+    mode === 'preset' && preset ? getPresetClassName(preset, speed) : ''
 
-  const resolvedType = mode === 'preset' && fixedBannerPresetTypes[preset]
-    ? fixedBannerPresetTypes[preset]
-    : type
+  const resolvedType =
+    mode === 'preset' && fixedBannerPresetTypes[preset]
+      ? fixedBannerPresetTypes[preset]
+      : type
   const bannerMeta = bannerTypes[resolvedType]
   const BannerIcon = bannerMeta.icon
   const bannerLabel = t(bannerMeta.labelKey)
 
   const bgStyle: React.CSSProperties = (() => {
-    if (mode === 'preset' && colorEditableBannerPresets.has(preset) && colors.trim()) {
+    if (
+      mode === 'preset' &&
+      colorEditableBannerPresets.has(preset) &&
+      colors.trim()
+    ) {
       return buildPresetStyle(preset, colors)
     }
     return {}
@@ -378,8 +435,10 @@ export function TopBanner() {
 
   return (
     <div
-      className={`top-banner ${bannerMeta.className} relative flex items-center text-sm ${presetClass}`}
-      data-banner-mode={mode === 'code' ? 'code' : mode === 'preset' ? 'preset' : 'default'}
+      className={`top-banner ${variant === 'workspace' ? 'top-banner-workspace' : ''} ${bannerMeta.className} relative flex items-center text-sm ${presetClass}`}
+      data-banner-mode={
+        mode === 'code' ? 'code' : mode === 'preset' ? 'preset' : 'default'
+      }
       style={{ ...bgStyle, ...fontColorStyle }}
     >
       <span className='top-banner-icon'>
@@ -389,26 +448,33 @@ export function TopBanner() {
         ref={containerRef}
         className='top-banner-copy flex-1 overflow-hidden'
       >
-        <span ref={measureRef} className='top-banner-measure' aria-hidden='true'>
+        <span
+          ref={measureRef}
+          className='top-banner-measure'
+          aria-hidden='true'
+        >
           <strong>{bannerLabel}</strong>
           <span className='top-banner-separator'>/</span>
           {content}
         </span>
         {shouldScroll ? (
-          <div className='inline-flex animate-marquee whitespace-nowrap'>
+          <div className='animate-marquee inline-flex whitespace-nowrap'>
             <span className='top-banner-message top-banner-message-scroll'>
               <strong>{bannerLabel}</strong>
               <span className='top-banner-separator'>/</span>
               {content}
             </span>
-            <span className='top-banner-message top-banner-message-scroll' aria-hidden='true'>
+            <span
+              className='top-banner-message top-banner-message-scroll'
+              aria-hidden='true'
+            >
               <strong>{bannerLabel}</strong>
               <span className='top-banner-separator'>/</span>
               {content}
             </span>
           </div>
         ) : (
-          <div className='whitespace-nowrap text-center'>
+          <div className='text-center whitespace-nowrap'>
             <span className='top-banner-message'>
               <strong>{bannerLabel}</strong>
               <span className='top-banner-separator'>/</span>
@@ -420,6 +486,7 @@ export function TopBanner() {
       {dismissible && (
         <button
           type='button'
+          aria-label={t('Close')}
           onClick={() => dismissBanner(contentHash)}
           className='ml-2 shrink-0 rounded-sm opacity-70 hover:opacity-100'
         >

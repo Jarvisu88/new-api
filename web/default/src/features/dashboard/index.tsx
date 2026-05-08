@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SectionPageLayout } from '@/components/layout'
 import { FadeIn } from '@/components/page-transition'
+import { TopBanner } from '@/components/top-banner'
 import { ModelsChartPreferences } from './components/models/models-chart-preferences'
 import { ModelsFilter } from './components/models/models-filter-dialog'
 import { OverviewDashboard } from './components/overview/overview-dashboard'
@@ -183,6 +184,11 @@ export function Dashboard() {
       <SectionPageLayout.Description>
         {t(meta.descriptionKey)}
       </SectionPageLayout.Description>
+      <SectionPageLayout.Actions>
+        <div className='dashboard-header-banner'>
+          <TopBanner variant='workspace' />
+        </div>
+      </SectionPageLayout.Actions>
       <SectionPageLayout.Content>
         <div className='space-y-3 sm:space-y-4'>
           {activeSection !== 'overview' && (

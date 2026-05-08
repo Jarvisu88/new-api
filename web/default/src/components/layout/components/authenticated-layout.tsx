@@ -5,7 +5,6 @@ import { SearchProvider } from '@/context/search-provider'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AnimatedOutlet } from '@/components/page-transition'
 import { SkipToMain } from '@/components/skip-to-main'
-import { TopBanner } from '@/components/top-banner'
 import { WorkspaceProvider } from '../context/workspace-context'
 import { AppHeader } from './app-header'
 import { AppSidebar } from './app-sidebar'
@@ -21,21 +20,21 @@ export function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
     <LayoutProvider>
       <SearchProvider>
         <WorkspaceProvider>
-          <SidebarProvider defaultOpen={defaultOpen} className='flex-col'>
+          <SidebarProvider
+            defaultOpen={defaultOpen}
+            className='authenticated-shell h-svh flex-col overflow-hidden'
+          >
             <SkipToMain />
-            <TopBanner />
-            <AppHeader />
-            <div className='flex min-h-0 w-full flex-1'>
+            <div className='flex h-svh min-h-0 w-full flex-1'>
               <AppSidebar />
-              <SidebarInset
-                className={cn(
-                  '@container/content',
-                  'h-[calc(100svh-var(--app-header-height,0px))]',
-                  'peer-data-[variant=inset]:h-[calc(100svh-var(--app-header-height,0px)-(var(--spacing)*4))]'
-                )}
-              >
-                {props.children ?? <AnimatedOutlet />}
-              </SidebarInset>
+              <div className='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
+                <AppHeader />
+                <SidebarInset
+                  className={cn('@container/content', 'min-h-0 flex-1')}
+                >
+                  {props.children ?? <AnimatedOutlet />}
+                </SidebarInset>
+              </div>
             </div>
           </SidebarProvider>
         </WorkspaceProvider>

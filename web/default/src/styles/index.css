@@ -459,18 +459,180 @@
   overflow: hidden;
 }
 
+.authenticated-shell [data-slot='sidebar-container'] {
+  top: 0;
+  height: 100svh;
+}
+
+.public-banner-slot {
+  position: sticky;
+  top: 64px;
+  z-index: 45;
+  width: 100%;
+  padding-inline: 0;
+  pointer-events: none;
+  transition:
+    top 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    padding-inline 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.public-banner-slot:empty {
+  display: none;
+}
+
+.public-banner-slot > .top-banner {
+  max-width: calc(80rem - 2rem);
+  margin: 0 auto;
+  border-radius: 0 0 18px 18px;
+  border-top-width: 0;
+  box-shadow: 0 12px 30px rgb(15 23 42 / 0.08);
+  pointer-events: auto;
+  transition:
+    max-width 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    margin 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.public-banner-slot-scrolled {
+  top: 76px;
+  padding-inline: 12px;
+}
+
+.public-banner-slot-scrolled > .top-banner {
+  max-width: min(52rem, calc(100vw - 1.5rem));
+  margin: 0 auto;
+  border-radius: 18px;
+  border-top-width: 1px;
+  box-shadow:
+    0 2px 16px -6px rgb(0 0 0 / 0.12),
+    0 10px 26px rgb(15 23 42 / 0.08);
+}
+
+.dashboard-header-banner:empty {
+  display: none;
+}
+
+.section-page-layout-header:has(.dashboard-header-banner) {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.section-page-layout-header:has(.dashboard-header-banner)
+  .section-page-layout-title {
+  flex: 0 0 auto;
+}
+
+.section-page-layout-header:has(.dashboard-header-banner)
+  .section-page-layout-actions {
+  flex: 1 1 24rem;
+  min-width: min(100%, 18rem);
+}
+
+.dashboard-header-banner {
+  width: 100%;
+  max-width: 44rem;
+  min-width: 0;
+}
+
+.dashboard-header-banner > .top-banner-workspace {
+  min-height: 38px;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 13px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 8px 18px rgb(15 23 42 / 0.05);
+}
+
+.dashboard-header-banner > .top-banner {
+  animation: none;
+  transform: none;
+}
+
+.dashboard-header-banner .top-banner-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.dashboard-header-banner .top-banner button {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.dark .dashboard-header-banner > .top-banner-workspace {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+@media (max-width: 640px) {
+  .section-page-layout-header:has(.dashboard-header-banner)
+    .section-page-layout-actions {
+    flex-basis: 100%;
+  }
+
+  .dashboard-header-banner {
+    max-width: none;
+  }
+
+  .dashboard-header-banner > .top-banner-workspace {
+    min-height: 40px;
+    padding-inline: 9px;
+  }
+}
+
 .top-banner {
   --banner-motion-duration: 8s;
-  min-height: 46px;
+  min-height: 50px;
   margin: 10px 12px 8px;
-  padding: 9px 12px;
-  gap: 10px;
+  padding: 9px 14px;
+  gap: 12px;
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid transparent;
   box-shadow: 0 14px 30px rgb(15 23 42 / 0.12);
   contain: layout paint;
   transform: translateZ(0);
+  animation: banner-enter 0.35s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.top-banner-workspace {
+  width: auto;
+  min-height: 46px;
+  margin: 8px 16px 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
+  flex: 0 0 auto;
+  border-left: 3px solid color-mix(in oklch, currentColor 30%, transparent);
+}
+
+.top-banner-workspace::before,
+.top-banner-workspace::after {
+  animation-duration: calc(var(--banner-motion-duration) * 2) !important;
+}
+
+.top-banner-workspace.banner-preset-flow,
+.top-banner-workspace.banner-preset-aurora,
+.top-banner-workspace.banner-preset-spotlight {
+  background-size:
+    240% 240%,
+    240% 240%,
+    100% 100%;
+}
+
+.top-banner-workspace.banner-preset-pulse,
+.top-banner-workspace.banner-preset-rainbow,
+.top-banner-workspace.banner-preset-scanline {
+  animation-duration: calc(var(--banner-motion-duration) * 1.6);
+}
+
+.top-banner-workspace.banner-preset-maintenance-stripe {
+  background:
+    linear-gradient(135deg, rgb(255 251 235 / 0.96), rgb(254 243 199 / 0.82)),
+    #fff9eb;
 }
 
 .faded-bottom,
@@ -489,13 +651,21 @@
   position: relative;
   z-index: 1;
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 0.92);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.86);
   color: #172033;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.dark .top-banner-icon {
+  background: rgb(255 255 255 / 0.1);
+  color: inherit;
 }
 
 .top-banner-copy {
@@ -510,6 +680,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
+  line-height: 1.35;
 }
 
 .top-banner-measure {
@@ -542,10 +713,10 @@
   position: relative;
   z-index: 1;
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 9px;
   background: rgb(255 255 255 / 0.14);
   color: inherit;
   transition:
@@ -555,6 +726,18 @@
 
 .top-banner button:hover {
   background: rgb(255 255 255 / 0.24);
+}
+
+.dark .top-banner button {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.dark .top-banner button:hover {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.dark .top-banner-workspace {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
 }
 
 .banner-speed-slow {
@@ -571,43 +754,65 @@
 
 .top-banner-notice,
 .banner-preset-notice-glass {
-  color: #f8fafc;
+  color: #133827;
   background:
-    linear-gradient(135deg, rgb(15 23 42 / 0.88), rgb(30 64 175 / 0.78)),
-    #0f172a;
-  border-color: rgb(255 255 255 / 0.22);
+    linear-gradient(135deg, rgb(240 253 244 / 0.98), rgb(220 252 231 / 0.92)),
+    #ecfdf5;
+  border-color: rgb(134 239 172 / 0.36);
+  box-shadow: 0 14px 30px rgb(16 185 129 / 0.12);
 }
 
 .top-banner-notice::before,
 .banner-preset-notice-glass::before {
-  background: linear-gradient(120deg, transparent, rgb(255 255 255 / 0.12), transparent);
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgb(34 197 94 / 0.12),
+    transparent
+  );
   transform: translateX(-42%);
 }
 
-.banner-preset-notice-glass {
-  color: #0f172a;
-  background:
-    linear-gradient(135deg, rgb(239 246 255 / 0.94), rgb(224 242 254 / 0.88)),
-    #eff6ff;
-  border-color: rgb(125 211 252 / 0.46);
-  box-shadow: 0 12px 28px rgb(14 165 233 / 0.14);
-}
-
-.banner-preset-notice-glass::before {
-  background: linear-gradient(120deg, transparent, rgb(14 165 233 / 0.14), transparent);
-}
-
+.top-banner-notice .top-banner-icon,
 .banner-preset-notice-glass .top-banner-icon {
-  color: #1d4ed8;
-  background: rgb(255 255 255 / 0.9);
+  color: #ffffff;
+  background: #17935f;
 }
 
+.top-banner-notice button,
 .banner-preset-notice-glass button {
-  background: rgb(37 99 235 / 0.08);
+  background: rgb(22 163 74 / 0.08);
 }
 
+.top-banner-notice button:hover,
 .banner-preset-notice-glass button:hover {
-  background: rgb(37 99 235 / 0.14);
+  background: rgb(22 163 74 / 0.14);
+}
+
+.dark .top-banner-notice,
+.dark .banner-preset-notice-glass {
+  color: #d1fae5;
+  background:
+    linear-gradient(135deg, rgb(6 78 59 / 0.65), rgb(4 120 87 / 0.45)),
+    rgb(6 78 59 / 0.3);
+  border-color: rgb(16 185 129 / 0.25);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 0.25);
+}
+
+.dark .top-banner-notice .top-banner-icon,
+.dark .banner-preset-notice-glass .top-banner-icon {
+  color: #d1fae5;
+  background: rgb(16 185 129 / 0.25);
+}
+
+.dark .top-banner-notice button,
+.dark .banner-preset-notice-glass button {
+  background: rgb(16 185 129 / 0.12);
+}
+
+.dark .top-banner-notice button:hover,
+.dark .banner-preset-notice-glass button:hover {
+  background: rgb(16 185 129 / 0.22);
 }
 
 .top-banner-maintenance,
@@ -623,7 +828,7 @@
     ),
     #fff9eb;
   border-color: rgb(245 158 11 / 0.24);
-  box-shadow: 0 10px 22px rgb(146 64 14 / 0.10);
+  box-shadow: 0 10px 22px rgb(146 64 14 / 0.1);
 }
 
 .top-banner-maintenance .top-banner-icon,
@@ -634,7 +839,34 @@
 
 .top-banner-maintenance button,
 .banner-preset-maintenance-stripe button {
-  background: rgb(146 64 14 / 0.10);
+  background: rgb(146 64 14 / 0.1);
+}
+
+.dark .top-banner-maintenance,
+.dark .banner-preset-maintenance-stripe {
+  color: #fef3c7;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgb(245 158 11 / 0.12) 0,
+      rgb(245 158 11 / 0.12) 8px,
+      transparent 8px,
+      transparent 16px
+    ),
+    rgb(120 53 15 / 0.4);
+  border-color: rgb(245 158 11 / 0.2);
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.25);
+}
+
+.dark .top-banner-maintenance .top-banner-icon,
+.dark .banner-preset-maintenance-stripe .top-banner-icon {
+  color: #fef3c7;
+  background: rgb(180 83 9 / 0.35);
+}
+
+.dark .top-banner-maintenance button,
+.dark .banner-preset-maintenance-stripe button {
+  background: rgb(245 158 11 / 0.12);
 }
 
 .top-banner-important,
@@ -649,6 +881,22 @@
 .top-banner-important .top-banner-icon,
 .banner-preset-important-alert .top-banner-icon {
   color: #7f1d1d;
+}
+
+.dark .top-banner-important,
+.dark .banner-preset-important-alert {
+  color: #fecdd3;
+  background:
+    linear-gradient(135deg, rgb(127 29 29 / 0.8), rgb(136 19 55 / 0.6)),
+    rgb(76 5 25 / 0.5);
+  border-color: rgb(244 63 94 / 0.2);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.3);
+}
+
+.dark .top-banner-important .top-banner-icon,
+.dark .banner-preset-important-alert .top-banner-icon {
+  color: #fecdd3;
+  background: rgb(225 29 72 / 0.2);
 }
 
 .top-banner-warning,
@@ -667,7 +915,30 @@
 
 .top-banner-warning button,
 .banner-preset-warning-soft button {
-  background: rgb(146 64 14 / 0.10);
+  background: rgb(146 64 14 / 0.1);
+}
+
+.dark .top-banner-warning,
+.dark .banner-preset-warning-soft {
+  color: #fef9c3;
+  background: linear-gradient(
+    135deg,
+    rgb(113 63 18 / 0.5),
+    rgb(120 53 15 / 0.35)
+  );
+  border-color: rgb(234 179 8 / 0.2);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.25);
+}
+
+.dark .top-banner-warning .top-banner-icon,
+.dark .banner-preset-warning-soft .top-banner-icon {
+  color: #fef9c3;
+  background: rgb(202 138 4 / 0.25);
+}
+
+.dark .top-banner-warning button,
+.dark .banner-preset-warning-soft button {
+  background: rgb(234 179 8 / 0.12);
 }
 
 .top-banner-outage,
@@ -684,12 +955,28 @@
   color: #991b1b;
 }
 
+.dark .top-banner-outage,
+.dark .banner-preset-incident-critical {
+  color: #fecaca;
+  background:
+    linear-gradient(135deg, rgb(69 10 10 / 0.85), rgb(153 27 27 / 0.65)),
+    rgb(50 10 10 / 0.5);
+  border-color: rgb(239 68 68 / 0.2);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.35);
+}
+
+.dark .top-banner-outage .top-banner-icon,
+.dark .banner-preset-incident-critical .top-banner-icon {
+  color: #fecaca;
+  background: rgb(220 38 38 / 0.2);
+}
+
 .top-banner-success,
 .banner-preset-success-soft {
   color: #062f24;
   background: linear-gradient(135deg, #ecfdf5, #dff7ed);
   border-color: rgb(16 185 129 / 0.24);
-  box-shadow: 0 10px 24px rgb(6 95 70 / 0.10);
+  box-shadow: 0 10px 24px rgb(6 95 70 / 0.1);
 }
 
 .top-banner-success .top-banner-icon,
@@ -700,7 +987,26 @@
 
 .top-banner-success button,
 .banner-preset-success-soft button {
-  background: rgb(6 95 70 / 0.10);
+  background: rgb(6 95 70 / 0.1);
+}
+
+.dark .top-banner-success,
+.dark .banner-preset-success-soft {
+  color: #a7f3d0;
+  background: linear-gradient(135deg, rgb(6 78 59 / 0.5), rgb(4 120 87 / 0.3));
+  border-color: rgb(52 211 153 / 0.2);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.25);
+}
+
+.dark .top-banner-success .top-banner-icon,
+.dark .banner-preset-success-soft .top-banner-icon {
+  color: #a7f3d0;
+  background: rgb(16 185 129 / 0.2);
+}
+
+.dark .top-banner-success button,
+.dark .banner-preset-success-soft button {
+  background: rgb(52 211 153 / 0.12);
 }
 
 .banner-preset-notice-glass::before {
@@ -708,26 +1014,42 @@
 }
 
 .banner-preset-maintenance-stripe {
-  background-size: 48px 48px, 100% 100%;
-  animation: banner-stripe-drift calc(var(--banner-motion-duration) * 1.4) linear infinite;
+  background-size:
+    48px 48px,
+    100% 100%;
+  animation: banner-stripe-drift calc(var(--banner-motion-duration) * 1.4)
+    linear infinite;
 }
 
 .banner-preset-important-alert {
-  animation: banner-important-glow var(--banner-motion-duration) ease-in-out infinite;
+  animation: banner-important-glow var(--banner-motion-duration) ease-in-out
+    infinite;
 }
 
 .banner-preset-warning-soft::before {
-  background: radial-gradient(circle at 12% 50%, rgb(245 158 11 / 0.18), transparent 34%);
-  animation: banner-soft-breathe var(--banner-motion-duration) ease-in-out infinite;
+  background: radial-gradient(
+    circle at 12% 50%,
+    rgb(245 158 11 / 0.18),
+    transparent 34%
+  );
+  animation: banner-soft-breathe var(--banner-motion-duration) ease-in-out
+    infinite;
 }
 
 .banner-preset-incident-critical {
-  animation: banner-critical-pulse var(--banner-motion-duration) ease-in-out infinite;
+  animation: banner-critical-pulse var(--banner-motion-duration) ease-in-out
+    infinite;
 }
 
 .banner-preset-success-soft::before {
-  background: linear-gradient(120deg, transparent, rgb(16 185 129 / 0.18), transparent);
-  animation: banner-sweep calc(var(--banner-motion-duration) * 1.2) ease-in-out infinite;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgb(16 185 129 / 0.18),
+    transparent
+  );
+  animation: banner-sweep calc(var(--banner-motion-duration) * 1.2) ease-in-out
+    infinite;
 }
 
 @keyframes banner-flow {
@@ -743,7 +1065,8 @@
 }
 
 @keyframes banner-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -773,22 +1096,28 @@
   0% {
     transform: translateX(-82%);
   }
-  55%, 100% {
+  55%,
+  100% {
     transform: translateX(82%);
   }
 }
 
 @keyframes banner-stripe-drift {
   0% {
-    background-position: 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
   100% {
-    background-position: 48px 0, 0 0;
+    background-position:
+      48px 0,
+      0 0;
   }
 }
 
 @keyframes banner-important-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 12px 28px rgb(127 29 29 / 0.16);
   }
   50% {
@@ -797,7 +1126,8 @@
 }
 
 @keyframes banner-soft-breathe {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.45;
   }
   50% {
@@ -806,7 +1136,8 @@
 }
 
 @keyframes banner-critical-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 12px 28px rgb(69 10 10 / 0.18);
   }
   50% {
@@ -815,36 +1146,67 @@
 }
 
 @keyframes banner-aurora {
-  0%, 100% {
-    background-position: 0% 50%, 100% 50%, 50% 100%;
+  0%,
+  100% {
+    background-position:
+      0% 50%,
+      100% 50%,
+      50% 100%;
   }
   50% {
-    background-position: 100% 50%, 0% 50%, 50% 0%;
+    background-position:
+      100% 50%,
+      0% 50%,
+      50% 0%;
   }
 }
 
 @keyframes banner-spotlight {
   0% {
-    background-position: -35% 50%, 0 0;
+    background-position:
+      -35% 50%,
+      0 0;
   }
   100% {
-    background-position: 135% 50%, 0 0;
+    background-position:
+      135% 50%,
+      0 0;
   }
 }
 
 @keyframes banner-scanline {
   0% {
-    background-position: 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
   100% {
-    background-position: 0 36px, 0 0;
+    background-position:
+      0 36px,
+      0 0;
   }
 }
 
 .banner-preset-flow {
-  background: linear-gradient(270deg, var(--banner-color-1, #0f172a), var(--banner-color-2, #2563eb), var(--banner-color-3, #0891b2), var(--banner-color-4, #0f766e));
+  background: linear-gradient(
+    270deg,
+    var(--banner-color-1, #0f172a),
+    var(--banner-color-2, #2563eb),
+    var(--banner-color-3, #0891b2),
+    var(--banner-color-4, #0f766e)
+  );
   background-size: 400% 400%;
   animation: banner-flow var(--banner-motion-duration) ease infinite;
+}
+
+.dark .banner-preset-flow {
+  background: linear-gradient(
+    270deg,
+    var(--banner-color-1, #0f172a),
+    var(--banner-color-2, #1d4ed8),
+    var(--banner-color-3, #0e7490),
+    var(--banner-color-4, #065f46)
+  );
 }
 
 .banner-preset-flow.banner-speed-slow {
@@ -856,8 +1218,21 @@
 }
 
 .banner-preset-pulse {
-  background: linear-gradient(135deg, var(--banner-color-1, #0f172a), var(--banner-color-2, #2563eb));
-  animation: banner-pulse calc(var(--banner-motion-duration) / 4) ease-in-out infinite;
+  background: linear-gradient(
+    135deg,
+    var(--banner-color-1, #0f172a),
+    var(--banner-color-2, #2563eb)
+  );
+  animation: banner-pulse calc(var(--banner-motion-duration) / 4) ease-in-out
+    infinite;
+}
+
+.dark .banner-preset-pulse {
+  background: linear-gradient(
+    135deg,
+    var(--banner-color-1, #020617),
+    var(--banner-color-2, #1e40af)
+  );
 }
 
 .banner-preset-pulse.banner-speed-slow {
@@ -871,7 +1246,19 @@
 .banner-preset-shimmer {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--banner-color-1, #0f172a), var(--banner-color-2, #2563eb));
+  background: linear-gradient(
+    135deg,
+    var(--banner-color-1, #0f172a),
+    var(--banner-color-2, #2563eb)
+  );
+}
+
+.dark .banner-preset-shimmer {
+  background: linear-gradient(
+    135deg,
+    var(--banner-color-1, #020617),
+    var(--banner-color-2, #1e3a8a)
+  );
 }
 
 .banner-preset-shimmer::after {
@@ -881,7 +1268,12 @@
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
   animation: banner-shimmer 3s infinite;
 }
 
@@ -894,8 +1286,24 @@
 }
 
 .banner-preset-rainbow {
-  background: linear-gradient(90deg, var(--banner-color-1, #ef4444), var(--banner-color-2, #f59e0b), var(--banner-color-3, #22c55e), var(--banner-color-4, #3b82f6));
+  background: linear-gradient(
+    90deg,
+    var(--banner-color-1, #ef4444),
+    var(--banner-color-2, #f59e0b),
+    var(--banner-color-3, #22c55e),
+    var(--banner-color-4, #3b82f6)
+  );
   animation: banner-rainbow 8s linear infinite;
+}
+
+.dark .banner-preset-rainbow {
+  background: linear-gradient(
+    90deg,
+    var(--banner-color-1, #991b1b),
+    var(--banner-color-2, #92400e),
+    var(--banner-color-3, #166534),
+    var(--banner-color-4, #1e3a8a)
+  );
 }
 
 .banner-preset-rainbow.banner-speed-slow {
@@ -908,11 +1316,46 @@
 
 .banner-preset-aurora {
   background:
-    radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--banner-color-1, #22d3ee) 82%, transparent), transparent 34%),
-    radial-gradient(circle at 80% 50%, color-mix(in srgb, var(--banner-color-2, #a855f7) 76%, transparent), transparent 36%),
-    linear-gradient(135deg, var(--banner-color-3, #0f172a), var(--banner-color-4, #2563eb));
-  background-size: 180% 180%, 180% 180%, 100% 100%;
-  animation: banner-aurora calc(var(--banner-motion-duration) * 1.35) ease-in-out infinite;
+    radial-gradient(
+      circle at 20% 50%,
+      color-mix(in srgb, var(--banner-color-1, #22d3ee) 82%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 80% 50%,
+      color-mix(in srgb, var(--banner-color-2, #a855f7) 76%, transparent),
+      transparent 36%
+    ),
+    linear-gradient(
+      135deg,
+      var(--banner-color-3, #0f172a),
+      var(--banner-color-4, #2563eb)
+    );
+  background-size:
+    180% 180%,
+    180% 180%,
+    100% 100%;
+  animation: banner-aurora calc(var(--banner-motion-duration) * 1.35)
+    ease-in-out infinite;
+}
+
+.dark .banner-preset-aurora {
+  background:
+    radial-gradient(
+      circle at 20% 50%,
+      color-mix(in srgb, var(--banner-color-1, #0891b2) 72%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 80% 50%,
+      color-mix(in srgb, var(--banner-color-2, #7e22ce) 66%, transparent),
+      transparent 36%
+    ),
+    linear-gradient(
+      135deg,
+      var(--banner-color-3, #020617),
+      var(--banner-color-4, #1e3a8a)
+    );
 }
 
 .banner-preset-aurora.banner-speed-slow {
@@ -926,10 +1369,26 @@
 .banner-preset-spotlight {
   background:
     radial-gradient(circle at center, rgb(255 255 255 / 0.28), transparent 24%),
-    linear-gradient(135deg, var(--banner-color-1, #111827), var(--banner-color-2, #2563eb));
-  background-size: 42% 180%, 100% 100%;
+    linear-gradient(
+      135deg,
+      var(--banner-color-1, #111827),
+      var(--banner-color-2, #2563eb)
+    );
+  background-size:
+    42% 180%,
+    100% 100%;
   background-repeat: no-repeat;
   animation: banner-spotlight var(--banner-motion-duration) ease-in-out infinite;
+}
+
+.dark .banner-preset-spotlight {
+  background:
+    radial-gradient(circle at center, rgb(255 255 255 / 0.16), transparent 24%),
+    linear-gradient(
+      135deg,
+      var(--banner-color-1, #020617),
+      var(--banner-color-2, #1e3a8a)
+    );
 }
 
 .banner-preset-spotlight.banner-speed-slow {
@@ -949,8 +1408,29 @@
       transparent 1px,
       transparent 9px
     ),
-    linear-gradient(135deg, var(--banner-color-1, #020617), var(--banner-color-2, #0f766e));
-  animation: banner-scanline calc(var(--banner-motion-duration) / 1.5) linear infinite;
+    linear-gradient(
+      135deg,
+      var(--banner-color-1, #020617),
+      var(--banner-color-2, #0f766e)
+    );
+  animation: banner-scanline calc(var(--banner-motion-duration) / 1.5) linear
+    infinite;
+}
+
+.dark .banner-preset-scanline {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgb(255 255 255 / 0.08) 0,
+      rgb(255 255 255 / 0.08) 1px,
+      transparent 1px,
+      transparent 9px
+    ),
+    linear-gradient(
+      135deg,
+      var(--banner-color-1, #020617),
+      var(--banner-color-2, #064e3b)
+    );
 }
 
 .banner-preset-scanline.banner-speed-slow {
@@ -965,8 +1445,35 @@
   background: var(--banner-color-1, #2563eb);
 }
 
+.dark .banner-preset-solid {
+  background: var(--banner-color-1, #1e40af);
+}
+
 .banner-preset-gradient {
-  background: linear-gradient(to right, var(--banner-color-1, #0f172a), var(--banner-color-2, #2563eb));
+  background: linear-gradient(
+    to right,
+    var(--banner-color-1, #0f172a),
+    var(--banner-color-2, #2563eb)
+  );
+}
+
+.dark .banner-preset-gradient {
+  background: linear-gradient(
+    to right,
+    var(--banner-color-1, #020617),
+    var(--banner-color-2, #1e40af)
+  );
+}
+
+@keyframes banner-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -974,7 +1481,8 @@
   .landing-animate-fade-in,
   .landing-animate-scale-in,
   .landing-animate-fade-left,
-  .landing-animate-fade-right {
+  .landing-animate-fade-right,
+  .top-banner {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

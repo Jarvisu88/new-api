@@ -118,7 +118,7 @@ export function About() {
 
   if (isLoading) {
     return (
-      <PublicLayout>
+      <PublicLayout showTopBanner={false}>
         <div className='mx-auto flex max-w-4xl flex-col gap-4 py-12'>
           <Skeleton className='h-8 w-[45%]' />
           <Skeleton className='h-4 w-full' />
@@ -131,7 +131,7 @@ export function About() {
 
   if (!hasContent) {
     return (
-      <PublicLayout>
+      <PublicLayout showTopBanner={false}>
         <EmptyAboutState />
       </PublicLayout>
     )
@@ -139,7 +139,7 @@ export function About() {
 
   if (isUrl) {
     return (
-      <PublicLayout showMainContainer={false}>
+      <PublicLayout showMainContainer={false} showTopBanner={false}>
         <iframe
           src={rawContent}
           className='h-[calc(100vh-3.5rem)] w-full border-0'
@@ -150,7 +150,7 @@ export function About() {
   }
 
   return (
-    <PublicLayout>
+    <PublicLayout showTopBanner={false}>
       <div className='mx-auto max-w-6xl px-4 py-8'>
         {isHtml ? (
           <div
