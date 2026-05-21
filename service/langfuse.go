@@ -23,21 +23,26 @@ type langfuseEvent struct {
 	Body      interface{} `json:"body"`
 }
 
+type langfuseTraceBody struct {
+	Id       string                 `json:"id"`
+	Name     string                 `json:"name"`
+	UserId   string                 `json:"userId,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Input    interface{}            `json:"input,omitempty"`
+	Output   interface{}            `json:"output,omitempty"`
+}
+
 type langfuseGenerationBody struct {
-	Id               string                 `json:"id"`
-	TraceId          string                 `json:"traceId"`
-	Name             string                 `json:"name"`
-	StartTime        string                 `json:"startTime"`
-	EndTime          string                 `json:"endTime"`
-	Model            string                 `json:"model"`
-	ModelParameters  map[string]interface{} `json:"modelParameters,omitempty"`
-	Input            interface{}            `json:"input,omitempty"`
-	Output           interface{}            `json:"output,omitempty"`
-	Usage            *langfuseUsage         `json:"usage,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	Level            string                 `json:"level,omitempty"`
-	StatusMessage    string                 `json:"statusMessage,omitempty"`
-	UserId           string                 `json:"userId,omitempty"`
+	Id        string                 `json:"id"`
+	TraceId   string                 `json:"traceId"`
+	Name      string                 `json:"name"`
+	StartTime string                 `json:"startTime"`
+	EndTime   string                 `json:"endTime"`
+	Model     string                 `json:"model"`
+	Input     interface{}            `json:"input,omitempty"`
+	Output    interface{}            `json:"output,omitempty"`
+	Usage     *langfuseUsage         `json:"usage,omitempty"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type langfuseUsage struct {
@@ -82,7 +87,14 @@ func SendLangfuseTrace(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage
 		output = map[string]int{"completion_tokens": completionTokens}
 	}
 
-	body := langfuseGenerationBody{
+	traceBody := langfuseTraceBody{
+		Id:       traceId,
+		Name:     relayInfo.OriginModelName,
+		UserId:   strconv.Itoa(relayInfo.UserId),
+		Metadata: metadata,
+	}
+
+	generationBody := langfuseGenerationBody{
 		Id:        generationId,
 		TraceId:   traceId,
 		Name:      relayInfo.OriginModelName,
@@ -97,18 +109,24 @@ func SendLangfuseTrace(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage
 			Total:  totalTokens,
 		},
 		Metadata: metadata,
-		UserId:   strconv.Itoa(relayInfo.UserId),
 	}
 
-	event := langfuseEvent{
+	traceEvent := langfuseEvent{
+		Id:        uuid.New().String(),
+		Type:      "trace-create",
+		Timestamp: now.Format(time.RFC3339Nano),
+		Body:      traceBody,
+	}
+
+	generationEvent := langfuseEvent{
 		Id:        uuid.New().String(),
 		Type:      "generation-create",
 		Timestamp: now.Format(time.RFC3339Nano),
-		Body:      body,
+		Body:      generationBody,
 	}
 
 	batch := langfuseBatchRequest{
-		Batch: []langfuseEvent{event},
+		Batch: []langfuseEvent{traceEvent, generationEvent},
 	}
 
 	jsonData, err := common.Marshal(batch)
