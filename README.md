@@ -12,6 +12,7 @@ ghcr.io/cuzteam/new-api
 - top text banner
 - historical availability
 - Models without set prices are automatically allowed during registration.
+- Langfuse Track
 
 ## Github Action Status
 
