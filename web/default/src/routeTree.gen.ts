@@ -51,6 +51,7 @@ import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardSectionRouteImport } from './routes/_authenticated/dashboard/$section'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat/$chatId'
 import { Route as authUserResetRouteImport } from './routes/(auth)/user/reset'
+import { Route as AuthenticatedSystemSettingsStatisticsIndexRouteImport } from './routes/_authenticated/system-settings/statistics/index'
 import { Route as AuthenticatedSystemSettingsRequestLimitsIndexRouteImport } from './routes/_authenticated/system-settings/request-limits/index'
 import { Route as AuthenticatedSystemSettingsModelsIndexRouteImport } from './routes/_authenticated/system-settings/models/index'
 import { Route as AuthenticatedSystemSettingsMaintenanceIndexRouteImport } from './routes/_authenticated/system-settings/maintenance/index'
@@ -58,6 +59,7 @@ import { Route as AuthenticatedSystemSettingsIntegrationsIndexRouteImport } from
 import { Route as AuthenticatedSystemSettingsGeneralIndexRouteImport } from './routes/_authenticated/system-settings/general/index'
 import { Route as AuthenticatedSystemSettingsContentIndexRouteImport } from './routes/_authenticated/system-settings/content/index'
 import { Route as AuthenticatedSystemSettingsAuthIndexRouteImport } from './routes/_authenticated/system-settings/auth/index'
+import { Route as AuthenticatedSystemSettingsStatisticsSectionRouteImport } from './routes/_authenticated/system-settings/statistics/$section'
 import { Route as AuthenticatedSystemSettingsRequestLimitsSectionRouteImport } from './routes/_authenticated/system-settings/request-limits/$section'
 import { Route as AuthenticatedSystemSettingsModelsSectionRouteImport } from './routes/_authenticated/system-settings/models/$section'
 import { Route as AuthenticatedSystemSettingsMaintenanceSectionRouteImport } from './routes/_authenticated/system-settings/maintenance/$section'
@@ -290,6 +292,12 @@ const authUserResetRoute = authUserResetRouteImport.update({
   path: '/user/reset',
   getParentRoute: () => authRouteRoute,
 } as any)
+const AuthenticatedSystemSettingsStatisticsIndexRoute =
+  AuthenticatedSystemSettingsStatisticsIndexRouteImport.update({
+    id: '/statistics/',
+    path: '/statistics/',
+    getParentRoute: () => AuthenticatedSystemSettingsRouteRoute,
+  } as any)
 const AuthenticatedSystemSettingsRequestLimitsIndexRoute =
   AuthenticatedSystemSettingsRequestLimitsIndexRouteImport.update({
     id: '/request-limits/',
@@ -330,6 +338,12 @@ const AuthenticatedSystemSettingsAuthIndexRoute =
   AuthenticatedSystemSettingsAuthIndexRouteImport.update({
     id: '/auth/',
     path: '/auth/',
+    getParentRoute: () => AuthenticatedSystemSettingsRouteRoute,
+  } as any)
+const AuthenticatedSystemSettingsStatisticsSectionRoute =
+  AuthenticatedSystemSettingsStatisticsSectionRouteImport.update({
+    id: '/statistics/$section',
+    path: '/statistics/$section',
     getParentRoute: () => AuthenticatedSystemSettingsRouteRoute,
   } as any)
 const AuthenticatedSystemSettingsRequestLimitsSectionRoute =
@@ -423,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/system-settings/maintenance/$section': typeof AuthenticatedSystemSettingsMaintenanceSectionRoute
   '/system-settings/models/$section': typeof AuthenticatedSystemSettingsModelsSectionRoute
   '/system-settings/request-limits/$section': typeof AuthenticatedSystemSettingsRequestLimitsSectionRoute
+  '/system-settings/statistics/$section': typeof AuthenticatedSystemSettingsStatisticsSectionRoute
   '/system-settings/auth/': typeof AuthenticatedSystemSettingsAuthIndexRoute
   '/system-settings/content/': typeof AuthenticatedSystemSettingsContentIndexRoute
   '/system-settings/general/': typeof AuthenticatedSystemSettingsGeneralIndexRoute
@@ -430,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/system-settings/maintenance/': typeof AuthenticatedSystemSettingsMaintenanceIndexRoute
   '/system-settings/models/': typeof AuthenticatedSystemSettingsModelsIndexRoute
   '/system-settings/request-limits/': typeof AuthenticatedSystemSettingsRequestLimitsIndexRoute
+  '/system-settings/statistics/': typeof AuthenticatedSystemSettingsStatisticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -478,6 +494,7 @@ export interface FileRoutesByTo {
   '/system-settings/maintenance/$section': typeof AuthenticatedSystemSettingsMaintenanceSectionRoute
   '/system-settings/models/$section': typeof AuthenticatedSystemSettingsModelsSectionRoute
   '/system-settings/request-limits/$section': typeof AuthenticatedSystemSettingsRequestLimitsSectionRoute
+  '/system-settings/statistics/$section': typeof AuthenticatedSystemSettingsStatisticsSectionRoute
   '/system-settings/auth': typeof AuthenticatedSystemSettingsAuthIndexRoute
   '/system-settings/content': typeof AuthenticatedSystemSettingsContentIndexRoute
   '/system-settings/general': typeof AuthenticatedSystemSettingsGeneralIndexRoute
@@ -485,6 +502,7 @@ export interface FileRoutesByTo {
   '/system-settings/maintenance': typeof AuthenticatedSystemSettingsMaintenanceIndexRoute
   '/system-settings/models': typeof AuthenticatedSystemSettingsModelsIndexRoute
   '/system-settings/request-limits': typeof AuthenticatedSystemSettingsRequestLimitsIndexRoute
+  '/system-settings/statistics': typeof AuthenticatedSystemSettingsStatisticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -537,6 +555,7 @@ export interface FileRoutesById {
   '/_authenticated/system-settings/maintenance/$section': typeof AuthenticatedSystemSettingsMaintenanceSectionRoute
   '/_authenticated/system-settings/models/$section': typeof AuthenticatedSystemSettingsModelsSectionRoute
   '/_authenticated/system-settings/request-limits/$section': typeof AuthenticatedSystemSettingsRequestLimitsSectionRoute
+  '/_authenticated/system-settings/statistics/$section': typeof AuthenticatedSystemSettingsStatisticsSectionRoute
   '/_authenticated/system-settings/auth/': typeof AuthenticatedSystemSettingsAuthIndexRoute
   '/_authenticated/system-settings/content/': typeof AuthenticatedSystemSettingsContentIndexRoute
   '/_authenticated/system-settings/general/': typeof AuthenticatedSystemSettingsGeneralIndexRoute
@@ -544,6 +563,7 @@ export interface FileRoutesById {
   '/_authenticated/system-settings/maintenance/': typeof AuthenticatedSystemSettingsMaintenanceIndexRoute
   '/_authenticated/system-settings/models/': typeof AuthenticatedSystemSettingsModelsIndexRoute
   '/_authenticated/system-settings/request-limits/': typeof AuthenticatedSystemSettingsRequestLimitsIndexRoute
+  '/_authenticated/system-settings/statistics/': typeof AuthenticatedSystemSettingsStatisticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -595,6 +615,7 @@ export interface FileRouteTypes {
     | '/system-settings/maintenance/$section'
     | '/system-settings/models/$section'
     | '/system-settings/request-limits/$section'
+    | '/system-settings/statistics/$section'
     | '/system-settings/auth/'
     | '/system-settings/content/'
     | '/system-settings/general/'
@@ -602,6 +623,7 @@ export interface FileRouteTypes {
     | '/system-settings/maintenance/'
     | '/system-settings/models/'
     | '/system-settings/request-limits/'
+    | '/system-settings/statistics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -650,6 +672,7 @@ export interface FileRouteTypes {
     | '/system-settings/maintenance/$section'
     | '/system-settings/models/$section'
     | '/system-settings/request-limits/$section'
+    | '/system-settings/statistics/$section'
     | '/system-settings/auth'
     | '/system-settings/content'
     | '/system-settings/general'
@@ -657,6 +680,7 @@ export interface FileRouteTypes {
     | '/system-settings/maintenance'
     | '/system-settings/models'
     | '/system-settings/request-limits'
+    | '/system-settings/statistics'
   id:
     | '__root__'
     | '/'
@@ -708,6 +732,7 @@ export interface FileRouteTypes {
     | '/_authenticated/system-settings/maintenance/$section'
     | '/_authenticated/system-settings/models/$section'
     | '/_authenticated/system-settings/request-limits/$section'
+    | '/_authenticated/system-settings/statistics/$section'
     | '/_authenticated/system-settings/auth/'
     | '/_authenticated/system-settings/content/'
     | '/_authenticated/system-settings/general/'
@@ -715,6 +740,7 @@ export interface FileRouteTypes {
     | '/_authenticated/system-settings/maintenance/'
     | '/_authenticated/system-settings/models/'
     | '/_authenticated/system-settings/request-limits/'
+    | '/_authenticated/system-settings/statistics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1031,6 +1057,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authUserResetRouteImport
       parentRoute: typeof authRouteRoute
     }
+    '/_authenticated/system-settings/statistics/': {
+      id: '/_authenticated/system-settings/statistics/'
+      path: '/statistics'
+      fullPath: '/system-settings/statistics/'
+      preLoaderRoute: typeof AuthenticatedSystemSettingsStatisticsIndexRouteImport
+      parentRoute: typeof AuthenticatedSystemSettingsRouteRoute
+    }
     '/_authenticated/system-settings/request-limits/': {
       id: '/_authenticated/system-settings/request-limits/'
       path: '/request-limits'
@@ -1078,6 +1111,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/system-settings/auth/'
       preLoaderRoute: typeof AuthenticatedSystemSettingsAuthIndexRouteImport
+      parentRoute: typeof AuthenticatedSystemSettingsRouteRoute
+    }
+    '/_authenticated/system-settings/statistics/$section': {
+      id: '/_authenticated/system-settings/statistics/$section'
+      path: '/statistics/$section'
+      fullPath: '/system-settings/statistics/$section'
+      preLoaderRoute: typeof AuthenticatedSystemSettingsStatisticsSectionRouteImport
       parentRoute: typeof AuthenticatedSystemSettingsRouteRoute
     }
     '/_authenticated/system-settings/request-limits/$section': {
@@ -1165,6 +1205,7 @@ interface AuthenticatedSystemSettingsRouteRouteChildren {
   AuthenticatedSystemSettingsMaintenanceSectionRoute: typeof AuthenticatedSystemSettingsMaintenanceSectionRoute
   AuthenticatedSystemSettingsModelsSectionRoute: typeof AuthenticatedSystemSettingsModelsSectionRoute
   AuthenticatedSystemSettingsRequestLimitsSectionRoute: typeof AuthenticatedSystemSettingsRequestLimitsSectionRoute
+  AuthenticatedSystemSettingsStatisticsSectionRoute: typeof AuthenticatedSystemSettingsStatisticsSectionRoute
   AuthenticatedSystemSettingsAuthIndexRoute: typeof AuthenticatedSystemSettingsAuthIndexRoute
   AuthenticatedSystemSettingsContentIndexRoute: typeof AuthenticatedSystemSettingsContentIndexRoute
   AuthenticatedSystemSettingsGeneralIndexRoute: typeof AuthenticatedSystemSettingsGeneralIndexRoute
@@ -1172,6 +1213,7 @@ interface AuthenticatedSystemSettingsRouteRouteChildren {
   AuthenticatedSystemSettingsMaintenanceIndexRoute: typeof AuthenticatedSystemSettingsMaintenanceIndexRoute
   AuthenticatedSystemSettingsModelsIndexRoute: typeof AuthenticatedSystemSettingsModelsIndexRoute
   AuthenticatedSystemSettingsRequestLimitsIndexRoute: typeof AuthenticatedSystemSettingsRequestLimitsIndexRoute
+  AuthenticatedSystemSettingsStatisticsIndexRoute: typeof AuthenticatedSystemSettingsStatisticsIndexRoute
 }
 
 const AuthenticatedSystemSettingsRouteRouteChildren: AuthenticatedSystemSettingsRouteRouteChildren =
@@ -1192,6 +1234,8 @@ const AuthenticatedSystemSettingsRouteRouteChildren: AuthenticatedSystemSettings
       AuthenticatedSystemSettingsModelsSectionRoute,
     AuthenticatedSystemSettingsRequestLimitsSectionRoute:
       AuthenticatedSystemSettingsRequestLimitsSectionRoute,
+    AuthenticatedSystemSettingsStatisticsSectionRoute:
+      AuthenticatedSystemSettingsStatisticsSectionRoute,
     AuthenticatedSystemSettingsAuthIndexRoute:
       AuthenticatedSystemSettingsAuthIndexRoute,
     AuthenticatedSystemSettingsContentIndexRoute:
@@ -1206,6 +1250,8 @@ const AuthenticatedSystemSettingsRouteRouteChildren: AuthenticatedSystemSettings
       AuthenticatedSystemSettingsModelsIndexRoute,
     AuthenticatedSystemSettingsRequestLimitsIndexRoute:
       AuthenticatedSystemSettingsRequestLimitsIndexRoute,
+    AuthenticatedSystemSettingsStatisticsIndexRoute:
+      AuthenticatedSystemSettingsStatisticsIndexRoute,
   }
 
 const AuthenticatedSystemSettingsRouteRouteWithChildren =

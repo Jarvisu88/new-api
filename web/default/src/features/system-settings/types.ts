@@ -215,6 +215,14 @@ export type IntegrationSettings = {
   WaffoPancakeMinTopUp: number
 }
 
+export type StatisticsSettings = {
+  'langfuse_setting.enabled': boolean
+  'langfuse_setting.host': string
+  'langfuse_setting.public_key': string
+  'langfuse_setting.secret_key': string
+  'langfuse_setting.trace_content': boolean
+}
+
 export type ModelSettings = {
   'global.pass_through_request_enabled': boolean
   'global.thinking_model_blacklist': string

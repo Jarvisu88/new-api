@@ -7,6 +7,7 @@ import {
   Plug,
   Box,
   Wrench,
+  BarChart3,
 } from 'lucide-react'
 import { getAuthSectionNavItems } from '@/features/system-settings/auth/section-registry.tsx'
 import { getContentSectionNavItems } from '@/features/system-settings/content/section-registry.tsx'
@@ -15,6 +16,7 @@ import { getIntegrationsSectionNavItems } from '@/features/system-settings/integ
 import { getMaintenanceSectionNavItems } from '@/features/system-settings/maintenance/section-registry.tsx'
 import { getModelsSectionNavItems } from '@/features/system-settings/models/section-registry.tsx'
 import { getRequestLimitsSectionNavItems } from '@/features/system-settings/request-limits/section-registry.tsx'
+import { getStatisticsSectionNavItems } from '@/features/system-settings/statistics/section-registry.tsx'
 import { type NavGroup } from '../types'
 
 /**
@@ -58,6 +60,11 @@ export function getSystemSettingsNavGroups(t: TFunction): NavGroup[] {
           title: t('Models'),
           icon: Box,
           items: getModelsSectionNavItems(t),
+        },
+        {
+          title: t('Statistics'),
+          icon: BarChart3,
+          items: getStatisticsSectionNavItems(t),
         },
         {
           title: t('Maintenance'),
