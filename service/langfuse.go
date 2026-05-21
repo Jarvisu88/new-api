@@ -46,9 +46,10 @@ type langfuseGenerationBody struct {
 }
 
 type langfuseUsage struct {
-	Input  int `json:"input"`
-	Output int `json:"output"`
-	Total  int `json:"total"`
+	Input     int     `json:"input"`
+	Output    int     `json:"output"`
+	Total     int     `json:"total"`
+	TotalCost float64 `json:"totalCost,omitempty"`
 }
 
 type langfuseBatchRequest struct {
@@ -104,9 +105,10 @@ func SendLangfuseTrace(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage
 		Input:     input,
 		Output:    output,
 		Usage: &langfuseUsage{
-			Input:  promptTokens,
-			Output: completionTokens,
-			Total:  totalTokens,
+			Input:     promptTokens,
+			Output:    completionTokens,
+			Total:     totalTokens,
+			TotalCost: float64(quota) / common.QuotaPerUnit,
 		},
 		Metadata: metadata,
 	}
