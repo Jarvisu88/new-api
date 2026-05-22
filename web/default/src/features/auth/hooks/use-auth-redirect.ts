@@ -90,7 +90,7 @@ export function useAuthRedirect() {
         if (savedTheme) {
           setFrontendTheme(savedTheme)
           if (savedTheme === 'classic') {
-            window.location.assign('/console')
+            window.location.replace('/console')
             return
           }
         }

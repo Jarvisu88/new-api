@@ -120,8 +120,9 @@ func GetStatus(c *gin.Context) {
 		"user_agreement_enabled":      legalSetting.UserAgreement != "",
 		"privacy_policy_enabled":      legalSetting.PrivacyPolicy != "",
 		"checkin_enabled":             operation_setting.GetCheckinSetting().Enabled,
-		"langfuse_trace_content":      langfuse_setting.GetLangfuseSetting().Enabled && langfuse_setting.GetLangfuseSetting().TraceContent,
 	}
+	langfuseCfg := langfuse_setting.GetLangfuseSetting()
+	data["langfuse_trace_content"] = langfuseCfg.Enabled && langfuseCfg.TraceContent
 
 	// 根据启用状态注入可选内容
 	if cs.ApiInfoEnabled {

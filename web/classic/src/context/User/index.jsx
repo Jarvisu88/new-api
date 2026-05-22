@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { reducer, initialState } from './reducer';
 import { normalizeLanguage } from '../../i18n/language';
@@ -29,8 +29,6 @@ const normalizeFrontendTheme = (value) => {
   return value === 'classic' ? 'classic' : 'default';
 };
 
-const themeRedirectAttempted = { current: false };
-
 const setFrontendTheme = (theme) => {
   if (typeof document === 'undefined') return;
   document.cookie = `${FRONTEND_THEME_COOKIE_NAME}=${theme}; path=/; max-age=${FRONTEND_THEME_COOKIE_MAX_AGE}`;
@@ -39,13 +37,19 @@ const setFrontendTheme = (theme) => {
 export const UserContext = React.createContext({
   state: initialState,
   dispatch: () => null,
+  startThemeNavigation: () => {},
 });
 
 export const UserProvider = ({ children }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { i18n } = useTranslation();
+  const themeRedirectAttemptedRef = useRef(false);
+  const themeNavigationPendingRef = useRef(false);
 
-  // Sync language preference when user data is loaded
+  const startThemeNavigation = useCallback(() => {
+    themeNavigationPendingRef.current = true;
+  }, []);
+
   useEffect(() => {
     if (state.user?.setting) {
       try {
@@ -60,8 +64,8 @@ export const UserProvider = ({ children }) => {
         if (settings.frontend_theme) {
           const normalizedTheme = normalizeFrontendTheme(settings.frontend_theme);
           setFrontendTheme(normalizedTheme);
-          if (normalizedTheme === 'default' && !themeRedirectAttempted.current) {
-            themeRedirectAttempted.current = true;
+          if (normalizedTheme === 'default' && !themeRedirectAttemptedRef.current && !themeNavigationPendingRef.current) {
+            themeRedirectAttemptedRef.current = true;
             window.location.replace('/dashboard');
           }
         }
@@ -72,7 +76,7 @@ export const UserProvider = ({ children }) => {
   }, [state.user?.setting, i18n]);
 
   return (
-    <UserContext.Provider value={[state, dispatch]}>
+    <UserContext.Provider value={[state, dispatch, startThemeNavigation]}>
       {children}
     </UserContext.Provider>
   );
