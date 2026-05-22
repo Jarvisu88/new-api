@@ -29,6 +29,8 @@ const normalizeFrontendTheme = (value) => {
   return value === 'classic' ? 'classic' : 'default';
 };
 
+const themeRedirectAttempted = { current: false };
+
 const setFrontendTheme = (theme) => {
   if (typeof document === 'undefined') return;
   document.cookie = `${FRONTEND_THEME_COOKIE_NAME}=${theme}; path=/; max-age=${FRONTEND_THEME_COOKIE_MAX_AGE}`;
@@ -56,7 +58,12 @@ export const UserProvider = ({ children }) => {
           localStorage.setItem('i18nextLng', normalizedLanguage);
         }
         if (settings.frontend_theme) {
-          setFrontendTheme(normalizeFrontendTheme(settings.frontend_theme));
+          const normalizedTheme = normalizeFrontendTheme(settings.frontend_theme);
+          setFrontendTheme(normalizedTheme);
+          if (normalizedTheme === 'default' && !themeRedirectAttempted.current) {
+            themeRedirectAttempted.current = true;
+            window.location.replace('/dashboard');
+          }
         }
       } catch (e) {
         // Ignore parse errors

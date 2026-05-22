@@ -39,17 +39,7 @@ import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
 import { useLocation } from 'react-router-dom';
 import { normalizeLanguage } from '../../i18n/language';
-const FRONTEND_THEME_COOKIE_NAME = 'frontend_theme';
-const FRONTEND_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-const normalizeFrontendTheme = (value) => {
-  return value === 'classic' ? 'classic' : 'default';
-};
-
-const setFrontendTheme = (theme) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${FRONTEND_THEME_COOKIE_NAME}=${theme}; path=/; max-age=${FRONTEND_THEME_COOKIE_MAX_AGE}`;
-};
 const { Sider, Content, Header } = Layout;
 
 const PageLayout = () => {
@@ -135,9 +125,6 @@ const PageLayout = () => {
       try {
         const settings = JSON.parse(userState.user.setting);
         preferredLang = normalizeLanguage(settings.language);
-        if (settings.frontend_theme) {
-          setFrontendTheme(normalizeFrontendTheme(settings.frontend_theme));
-        }
       } catch (e) {
         // Ignore parse errors
       }
