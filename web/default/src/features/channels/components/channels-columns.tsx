@@ -661,7 +661,7 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
                       onClick={(e) => {
                         e.stopPropagation()
                         if (!deploymentId) return
-                        const targetUrl = `/console/deployment?deployment_id=${deploymentId}`
+                        const targetUrl = `/models/deployments?deployment_id=${deploymentId}`
                         window.open(targetUrl, '_blank', 'noopener')
                       }}
                     >

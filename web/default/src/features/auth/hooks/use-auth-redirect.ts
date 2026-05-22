@@ -3,7 +3,6 @@ import i18n from 'i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { getSelf } from '@/lib/api'
 import {
-  getFrontendThemeSettingsPath,
   normalizeFrontendTheme,
   setFrontendTheme,
 } from '@/lib/frontend-theme'
@@ -90,8 +89,8 @@ export function useAuthRedirect() {
         const savedTheme = getSavedFrontendTheme(user)
         if (savedTheme) {
           setFrontendTheme(savedTheme)
-          if (!redirectTo) {
-            window.location.assign(getFrontendThemeSettingsPath(savedTheme))
+          if (savedTheme === 'classic') {
+            window.location.replace('/console')
             return
           }
         }

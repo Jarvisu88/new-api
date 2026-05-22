@@ -3,7 +3,6 @@ package router
 import (
 	"embed"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -39,7 +38,7 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 		}
 
 		theme := resolveFrontendTheme(c)
-		if redirectPath := mapFrontendPath(theme, c.Request.URL.Path); redirectPath != "" && redirectPath != c.Request.URL.Path {
+		if redirectPath := common.MapFrontendPath(theme, c.Request.URL.Path); redirectPath != "" && redirectPath != c.Request.URL.Path {
 			if c.Request.URL.RawQuery != "" {
 				redirectPath = redirectPath + "?" + c.Request.URL.RawQuery
 			}
@@ -100,41 +99,6 @@ func resolveFrontendTheme(c *gin.Context) string {
 		}
 	}
 	return common.GetTheme()
-}
-
-func mapFrontendPath(theme string, path string) string {
-	normalizedPath := path
-	if normalizedPath == "" {
-		normalizedPath = "/"
-	}
-	unescapedPath, err := url.PathUnescape(normalizedPath)
-	if err == nil && unescapedPath != "" {
-		normalizedPath = unescapedPath
-	}
-	normalizedPath = strings.TrimSuffix(normalizedPath, "/")
-	if normalizedPath == "" {
-		normalizedPath = "/"
-	}
-
-	if theme == "classic" {
-		switch normalizedPath {
-		case "/dashboard":
-			return "/console"
-		case "/profile":
-			return "/console/personal"
-		}
-	}
-
-	if theme == "default" {
-		switch normalizedPath {
-		case "/console":
-			return "/dashboard"
-		case "/console/personal":
-			return "/profile"
-		}
-	}
-
-	return ""
 }
 
 func selectFrontendFS(theme string, defaultFS, classicFS static.ServeFileSystem) static.ServeFileSystem {

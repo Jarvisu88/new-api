@@ -224,7 +224,7 @@ export function ViewDetailsDialog({
                             <Button
                               variant='outline'
                               size='sm'
-                              onClick={() => window.open(url, '_blank')}
+                              onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
                             >
                               <ExternalLink className='mr-2 h-4 w-4' />
                               {t('Open')}

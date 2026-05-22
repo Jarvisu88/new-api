@@ -86,7 +86,7 @@ export async function handleGitHubOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildGitHubOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 /**
@@ -97,7 +97,7 @@ export async function handleDiscordOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildDiscordOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 /**
@@ -111,7 +111,7 @@ export async function handleOIDCOAuth(
   if (!state) return
 
   const url = buildOIDCOAuthUrl(authUrl, clientId, state)
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 /**
@@ -122,5 +122,5 @@ export async function handleLinuxDOOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildLinuxDOOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }

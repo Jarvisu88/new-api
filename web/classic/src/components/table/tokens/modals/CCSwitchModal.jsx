@@ -117,7 +117,7 @@ export default function CCSwitchModal({
       return;
     }
     const url = buildCCSwitchURL(app, name, models, 'sk-' + tokenKey);
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
     onClose();
   };
 

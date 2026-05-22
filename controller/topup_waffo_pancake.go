@@ -103,11 +103,11 @@ func getWaffoPancakeBuyerEmail(user *model.User) string {
 	return ""
 }
 
-func getWaffoPancakeReturnURL() string {
+func getWaffoPancakeReturnURL(c *gin.Context) string {
 	if strings.TrimSpace(setting.WaffoPancakeReturnURL) != "" {
 		return setting.WaffoPancakeReturnURL
 	}
-	return strings.TrimRight(system_setting.ServerAddress, "/") + "/console/topup?show_history=true"
+	return strings.TrimRight(system_setting.ServerAddress, "/") + common.GetThemeAwarePath(c, "/console/topup?show_history=true")
 }
 
 func RequestWaffoPancakePay(c *gin.Context) {
@@ -186,7 +186,7 @@ func RequestWaffoPancakePay(c *gin.Context) {
 			TaxCategory: "saas",
 		},
 		BuyerEmail:       getWaffoPancakeBuyerEmail(user),
-		SuccessURL:       getWaffoPancakeReturnURL(),
+		SuccessURL:       getWaffoPancakeReturnURL(c),
 		ExpiresInSeconds: &expiresInSeconds,
 	})
 	if err != nil {

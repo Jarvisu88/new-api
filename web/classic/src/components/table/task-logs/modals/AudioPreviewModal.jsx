@@ -119,7 +119,7 @@ const AudioClipCard = ({ clip }) => {
             <Button
               size='small'
               icon={<IconExternalOpen />}
-              onClick={() => window.open(audioUrl, '_blank')}
+              onClick={() => window.open(audioUrl, '_blank', 'noopener,noreferrer')}
             >
               {t('在新标签页中打开')}
             </Button>

@@ -66,7 +66,7 @@ export function Mermaid(props) {
     const text = new XMLSerializer().serializeToString(svg);
     const blob = new Blob([text], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   if (hasError) {

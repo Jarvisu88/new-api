@@ -84,7 +84,7 @@ const updateFrontendThemePreference = async (theme, userId) => {
 
 const PreferencesSettings = ({ t }) => {
   const { i18n } = useTranslation();
-  const [userState, userDispatch] = useContext(UserContext);
+  const [userState, userDispatch, startThemeNavigation] = useContext(UserContext);
   const [currentLanguage, setCurrentLanguage] = useState(
     normalizeLanguage(i18n.language) || 'zh-CN',
   );
@@ -198,6 +198,7 @@ const PreferencesSettings = ({ t }) => {
       setFrontendTheme(theme);
       setCurrentFrontendTheme(theme);
       showSuccess(t('界面风格已切换，正在跳转'));
+      startThemeNavigation();
       setTimeout(() => {
         window.location.assign(getFrontendThemeSettingsPath(theme));
       }, 300);

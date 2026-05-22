@@ -30,7 +30,12 @@ export const Route = createFileRoute('/_authenticated')({
           try {
             const parsed = JSON.parse(setting) as { frontend_theme?: string }
             if (parsed.frontend_theme) {
-              setFrontendTheme(normalizeFrontendTheme(parsed.frontend_theme))
+              const normalizedTheme = normalizeFrontendTheme(parsed.frontend_theme)
+              setFrontendTheme(normalizedTheme)
+              if (normalizedTheme === 'classic') {
+                window.location.replace('/console')
+                return
+              }
             }
           } catch {
             /* empty */

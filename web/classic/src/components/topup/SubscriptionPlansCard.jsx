@@ -124,7 +124,7 @@ const SubscriptionPlansCard = ({
         plan_id: selectedPlan.plan.id,
       });
       if (res.data?.message === 'success') {
-        window.open(res.data.data?.pay_link, '_blank');
+        window.open(res.data.data?.pay_link, '_blank', 'noopener,noreferrer');
         showSuccess(t('已打开支付页面'));
         closeBuy();
       } else {
@@ -152,7 +152,7 @@ const SubscriptionPlansCard = ({
         plan_id: selectedPlan.plan.id,
       });
       if (res.data?.message === 'success') {
-        window.open(res.data.data?.checkout_url, '_blank');
+        window.open(res.data.data?.checkout_url, '_blank', 'noopener,noreferrer');
         showSuccess(t('已打开支付页面'));
         closeBuy();
       } else {

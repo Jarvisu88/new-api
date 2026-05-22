@@ -573,7 +573,7 @@ const ViewLogsModal = ({ visible, onCancel, deployment, t }) => {
                           size='small'
                           theme='borderless'
                           onClick={() =>
-                            window.open(containerDetails.public_url, '_blank')
+                            window.open(containerDetails.public_url, '_blank', 'noopener,noreferrer')
                           }
                         />
                       </Tooltip>
