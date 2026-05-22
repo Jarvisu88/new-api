@@ -180,7 +180,7 @@ func main() {
 		Path:     "/",
 		MaxAge:   2592000,
 		HttpOnly: true,
-		Secure:   os.Getenv("GIN_MODE") == "release",
+		Secure:   gin.Mode() == gin.ReleaseMode,
 		SameSite: http.SameSiteLaxMode,
 	})
 	server.Use(sessions.Sessions("session", store))
