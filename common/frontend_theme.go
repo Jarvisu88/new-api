@@ -40,7 +40,7 @@ var classicToDefaultMap = map[string]string{
 	"/console/midjourney":   "/usage-logs",
 	"/console/task":         "/usage-logs",
 	"/console/models":       "/models",
-	"/console/deployment":   "/models",
+	"/console/deployment":   "/models/deployments",
 	"/console/subscription": "/subscriptions",
 	"/console/playground":   "/playground",
 	"/console/chat":         "/playground",
@@ -63,7 +63,7 @@ var defaultToClassicMap = map[string]string{
 }
 
 var classicToDefaultPrefixes = []struct{ prefix, replacement string }{
-	{"/console/chat/",     "/playground"},
+	{"/console/chat/",     "/playground/"},
 	{"/console/setting/",  "/system-settings/"},
 	{"/console/log/",      "/usage-logs/"},
 	{"/console/channel/",  "/channels/"},
@@ -73,7 +73,7 @@ var classicToDefaultPrefixes = []struct{ prefix, replacement string }{
 }
 
 var defaultToClassicPrefixes = []struct{ prefix, replacement string }{
-	{"/dashboard/",        "/console"},
+	{"/dashboard/",        "/console/"},
 	{"/system-settings/",  "/console/setting/"},
 	{"/usage-logs/",       "/console/log/"},
 	{"/channels/",         "/console/channel/"},
