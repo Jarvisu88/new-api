@@ -38,13 +38,6 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 		}
 
 		theme := resolveFrontendTheme(c)
-		if redirectPath := common.MapFrontendPath(theme, c.Request.URL.Path); redirectPath != "" && redirectPath != c.Request.URL.Path {
-			if c.Request.URL.RawQuery != "" {
-				redirectPath = redirectPath + "?" + c.Request.URL.RawQuery
-			}
-			c.Redirect(http.StatusFound, redirectPath)
-			return
-		}
 		themeFS := selectFrontendFS(theme, defaultFS, classicFS)
 		requestPath := strings.TrimPrefix(c.Request.URL.Path, "/")
 		if requestPath != "" && themeFS.Exists("/", requestPath) {
