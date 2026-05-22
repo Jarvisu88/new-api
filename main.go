@@ -178,10 +178,10 @@ func main() {
 	store := cookie.NewStore([]byte(common.SessionSecret))
 	store.Options(sessions.Options{
 		Path:     "/",
-		MaxAge:   2592000, // 30 days
+		MaxAge:   2592000,
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   gin.Mode() == gin.ReleaseMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 	server.Use(sessions.Sessions("session", store))
 

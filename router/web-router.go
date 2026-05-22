@@ -8,9 +8,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/model"
 	"github.com/gin-contrib/gzip"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
@@ -55,42 +53,6 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 }
 
 func resolveFrontendTheme(c *gin.Context) string {
-	themeCookie, err := c.Cookie(common.FrontendThemeCookieName)
-	if err == nil {
-		theme := common.NormalizeFrontendTheme(themeCookie)
-		if theme != "" {
-			return theme
-		}
-	}
-
-	session := sessions.Default(c)
-	sessionTheme := common.NormalizeFrontendTheme(common.Interface2String(session.Get(common.FrontendThemeSessionKey)))
-	if sessionTheme != "" {
-		common.SetFrontendThemeCookie(c, sessionTheme)
-		return sessionTheme
-	}
-
-	if sessionID := session.Get("id"); sessionID != nil {
-		if userID, ok := sessionID.(int); ok && userID > 0 {
-			setting, err := model.GetUserSetting(userID, false)
-			if err == nil {
-				theme := common.NormalizeFrontendTheme(setting.FrontendTheme)
-				if theme != "" {
-					session.Set(common.FrontendThemeSessionKey, theme)
-					_ = session.Save()
-					common.SetFrontendThemeCookie(c, theme)
-					return theme
-				}
-			}
-
-			fallbackTheme := common.NormalizeFrontendTheme(common.GetTheme())
-			if fallbackTheme != "" {
-				session.Set(common.FrontendThemeSessionKey, fallbackTheme)
-				_ = session.Save()
-				return fallbackTheme
-			}
-		}
-	}
 	return common.GetTheme()
 }
 
