@@ -35,8 +35,7 @@ const languageOptions = [
   { value: 'vi', label: 'Tiếng Việt' },
 ];
 
-const FRONTEND_THEME_COOKIE_NAME = 'frontend_theme';
-const FRONTEND_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const ENABLED_CLASSIC_FRONTEND_KEY = 'EnabledClassicFrontend';
 
 const frontendThemeOptions = [
   { value: 'default', label: '新版本 UI' },
@@ -44,42 +43,21 @@ const frontendThemeOptions = [
 ];
 
 const getFrontendTheme = () => {
-  if (typeof document === 'undefined') return 'default';
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${FRONTEND_THEME_COOKIE_NAME}=`);
-  if (parts.length !== 2) return 'default';
-  const theme = parts.pop()?.split(';').shift();
-  return theme === 'classic' ? 'classic' : 'default';
+  if (typeof localStorage === 'undefined') return 'default';
+  return localStorage.getItem(ENABLED_CLASSIC_FRONTEND_KEY) === 'true' ? 'classic' : 'default';
 };
 
 const setFrontendTheme = (theme) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${FRONTEND_THEME_COOKIE_NAME}=${theme}; path=/; max-age=${FRONTEND_THEME_COOKIE_MAX_AGE}`;
+  if (typeof localStorage === 'undefined') return;
+  if (theme === 'classic') {
+    localStorage.setItem(ENABLED_CLASSIC_FRONTEND_KEY, 'true');
+  } else {
+    localStorage.removeItem(ENABLED_CLASSIC_FRONTEND_KEY);
+  }
 };
 
 const getFrontendThemeSettingsPath = (theme) => {
   return theme === 'classic' ? '/console/personal' : '/profile';
-};
-
-const updateFrontendThemePreference = async (theme, userId) => {
-  const response = await fetch('/api/user/self', {
-    method: 'PUT',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store',
-      'New-API-User': String(userId ?? -1),
-    },
-    body: JSON.stringify({
-      frontend_theme: theme,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok || !data?.success) {
-    throw new Error(data?.message || 'save frontend theme failed');
-  }
-  return data;
 };
 
 const PreferencesSettings = ({ t }) => {
@@ -104,11 +82,6 @@ const PreferencesSettings = ({ t }) => {
         if (i18n.language !== lang) {
           i18n.changeLanguage(lang);
         }
-      }
-      if (settings.frontend_theme) {
-        setCurrentFrontendTheme(
-          settings.frontend_theme === 'classic' ? 'classic' : 'default',
-        );
       }
     } catch (e) {}
   }, [userState?.user?.setting, i18n]);
@@ -174,27 +147,6 @@ const PreferencesSettings = ({ t }) => {
     const previousTheme = currentFrontendTheme;
 
     try {
-      await updateFrontendThemePreference(theme, userState?.user?.id);
-
-      let settings = {};
-      if (userState?.user?.setting) {
-        try {
-          settings = JSON.parse(userState.user.setting) || {};
-        } catch (e) {
-          settings = {};
-        }
-      }
-      settings.frontend_theme = theme;
-      const nextUser = {
-        ...userState.user,
-        setting: JSON.stringify(settings),
-      };
-      userDispatch({
-        type: 'login',
-        payload: nextUser,
-      });
-      localStorage.setItem('user', JSON.stringify(nextUser));
-
       setFrontendTheme(theme);
       setCurrentFrontendTheme(theme);
       showSuccess(t('界面风格已切换，正在跳转'));

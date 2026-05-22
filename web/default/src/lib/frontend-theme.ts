@@ -1,7 +1,4 @@
-import { getCookie, setCookie } from '@/lib/cookies'
-
-export const FRONTEND_THEME_COOKIE_NAME = 'frontend_theme'
-export const FRONTEND_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+export const ENABLED_CLASSIC_FRONTEND_KEY = 'EnabledClassicFrontend'
 
 export type FrontendTheme = 'default' | 'classic'
 
@@ -15,11 +12,16 @@ export function normalizeFrontendTheme(
 }
 
 export function getFrontendTheme(): FrontendTheme {
-  return normalizeFrontendTheme(getCookie(FRONTEND_THEME_COOKIE_NAME))
+  const enabledClassic = localStorage.getItem(ENABLED_CLASSIC_FRONTEND_KEY)
+  return enabledClassic === 'true' ? 'classic' : 'default'
 }
 
 export function setFrontendTheme(theme: FrontendTheme): void {
-  setCookie(FRONTEND_THEME_COOKIE_NAME, theme, FRONTEND_THEME_COOKIE_MAX_AGE)
+  if (theme === 'classic') {
+    localStorage.setItem(ENABLED_CLASSIC_FRONTEND_KEY, 'true')
+  } else {
+    localStorage.removeItem(ENABLED_CLASSIC_FRONTEND_KEY)
+  }
 }
 
 export function getFrontendThemeSettingsPath(theme: FrontendTheme): string {

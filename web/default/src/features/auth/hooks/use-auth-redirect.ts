@@ -3,7 +3,7 @@ import i18n from 'i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { getSelf } from '@/lib/api'
 import {
-  normalizeFrontendTheme,
+  getFrontendTheme,
   setFrontendTheme,
 } from '@/lib/frontend-theme'
 import type { User } from '@/features/users/types'
@@ -27,101 +27,56 @@ function getSavedLanguage(user: User): string | undefined {
   }
 }
 
-function getSavedFrontendTheme(user: User): 'default' | 'classic' | undefined {
-  const userData = user as Record<string, unknown>
-  if (typeof userData.frontend_theme === 'string') {
-    return normalizeFrontendTheme(userData.frontend_theme)
-  }
-
-  if (typeof userData.setting !== 'string') {
-    return undefined
-  }
-
-  try {
-    const setting = JSON.parse(userData.setting) as { frontend_theme?: unknown }
-    return typeof setting.frontend_theme === 'string'
-      ? normalizeFrontendTheme(setting.frontend_theme)
-      : undefined
-  } catch {
-    return undefined
-  }
-}
-
-/**
- * Hook for handling authentication redirects and user data management
- */
 export function useAuthRedirect() {
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
-  /**
-   * Handle successful login
-   * @param userData - Optional user data from login response
-   * @param redirectTo - Redirect path after login
-   */
   const handleLoginSuccess = async (
     userData?: { id?: number } | null,
     redirectTo?: string
   ) => {
-    // Save user ID if available
     if (userData?.id) {
       saveUserId(userData.id)
     }
 
-    // Fetch and set user data
     try {
       const self = await getSelf()
       if (self?.success && self.data) {
         const user = self.data as User
         auth.setUser(user)
 
-        // Update user ID if not already set
         if (user.id) {
           saveUserId(user.id)
         }
 
-        // Restore saved language preference
         const savedLang = getSavedLanguage(user)
         if (savedLang && savedLang !== i18n.language) {
           i18n.changeLanguage(savedLang)
         }
 
-        const savedTheme = getSavedFrontendTheme(user)
-        if (savedTheme) {
-          setFrontendTheme(savedTheme)
-          if (savedTheme === 'classic') {
-            window.location.replace('/console')
-            return
-          }
+        const theme = getFrontendTheme()
+        if (theme === 'classic') {
+          setFrontendTheme('classic')
+          window.location.replace('/console')
+          return
         }
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Failed to fetch user data:', error)
     }
 
-    // Navigate to target page
     const targetPath = redirectTo || '/dashboard'
     navigate({ to: targetPath, replace: true })
   }
 
-  /**
-   * Redirect to 2FA page
-   */
   const redirectTo2FA = () => {
     navigate({ to: '/otp', replace: true })
   }
 
-  /**
-   * Redirect to login page
-   */
   const redirectToLogin = () => {
     navigate({ to: '/sign-in', replace: true })
   }
 
-  /**
-   * Redirect to register page
-   */
   const redirectToRegister = () => {
     navigate({ to: '/sign-up', replace: true })
   }

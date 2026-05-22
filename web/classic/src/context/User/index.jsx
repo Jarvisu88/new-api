@@ -17,22 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { reducer, initialState } from './reducer';
 import { normalizeLanguage } from '../../i18n/language';
-
-const FRONTEND_THEME_COOKIE_NAME = 'frontend_theme';
-const FRONTEND_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-
-const normalizeFrontendTheme = (value) => {
-  return value === 'classic' ? 'classic' : 'default';
-};
-
-const setFrontendTheme = (theme) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${FRONTEND_THEME_COOKIE_NAME}=${theme}; path=/; max-age=${FRONTEND_THEME_COOKIE_MAX_AGE}`;
-};
 
 export const UserContext = React.createContext({
   state: initialState,
@@ -43,12 +31,8 @@ export const UserContext = React.createContext({
 export const UserProvider = ({ children }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { i18n } = useTranslation();
-  const themeRedirectAttemptedRef = useRef(false);
-  const themeNavigationPendingRef = useRef(false);
 
-  const startThemeNavigation = useCallback(() => {
-    themeNavigationPendingRef.current = true;
-  }, []);
+  const startThemeNavigation = React.useCallback(() => {}, []);
 
   useEffect(() => {
     if (state.user?.setting) {
@@ -61,16 +45,7 @@ export const UserProvider = ({ children }) => {
         if (normalizedLanguage) {
           localStorage.setItem('i18nextLng', normalizedLanguage);
         }
-        if (settings.frontend_theme) {
-          const normalizedTheme = normalizeFrontendTheme(settings.frontend_theme);
-          setFrontendTheme(normalizedTheme);
-          if (normalizedTheme === 'default' && !themeRedirectAttemptedRef.current && !themeNavigationPendingRef.current) {
-            themeRedirectAttemptedRef.current = true;
-            window.location.replace('/dashboard');
-          }
-        }
       } catch (e) {
-        // Ignore parse errors
       }
     }
   }, [state.user?.setting, i18n]);

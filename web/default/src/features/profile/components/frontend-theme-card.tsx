@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { MonitorSmartphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
 import {
   Select,
   SelectContent,
@@ -18,8 +17,6 @@ import {
   setFrontendTheme,
   type FrontendTheme,
 } from '@/lib/frontend-theme'
-import { updateFrontendTheme } from '../api'
-import { parseUserSettings } from '../lib'
 
 const FRONTEND_THEME_OPTIONS: Array<{
   value: FrontendTheme
@@ -31,7 +28,6 @@ const FRONTEND_THEME_OPTIONS: Array<{
 
 export function FrontendThemeCard() {
   const { t } = useTranslation()
-  const { auth } = useAuthStore()
   const [currentTheme, setCurrentTheme] = useState<FrontendTheme>(
     getFrontendTheme()
   )
@@ -43,35 +39,13 @@ export function FrontendThemeCard() {
 
     setSwitching(true)
     try {
-      const existingSetting =
-        typeof auth.user?.setting === 'string'
-          ? parseUserSettings(auth.user.setting)
-          : (auth.user?.setting ?? {})
-      const response = await updateFrontendTheme(nextTheme)
-
-      if (!response.success) {
-        throw new Error(response.message || t('Failed to update settings'))
-      }
-
       setFrontendTheme(nextTheme)
       setCurrentTheme(nextTheme)
-
-      if (auth.user) {
-        useAuthStore.getState().auth.setUser({
-          ...auth.user,
-          setting: JSON.stringify({
-            ...existingSetting,
-            frontend_theme: nextTheme,
-          }),
-        })
-      }
 
       toast.success(t('Interface style updated. Redirecting...'))
       window.setTimeout(() => {
         window.location.assign(getFrontendThemeSettingsPath(nextTheme))
       }, 300)
-    } catch {
-      toast.error(t('Failed to update settings'))
     } finally {
       setSwitching(false)
     }
