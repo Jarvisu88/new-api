@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { LangfuseTraceNotice } from '@/components/langfuse-trace-notice'
 import { useSidebarConfig } from '@/hooks/use-sidebar-config'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SectionPageLayout } from '@/components/layout'
@@ -106,6 +107,7 @@ function UsageLogsContent() {
         </SectionPageLayout.Description>
         <SectionPageLayout.Content>
           <div className='space-y-4'>
+            <LangfuseTraceNotice />
             {showTaskSwitcher && (
               <Tabs value={activeCategory} onValueChange={handleSectionChange}>
                 <TabsList className='h-auto max-w-full flex-wrap justify-start'>

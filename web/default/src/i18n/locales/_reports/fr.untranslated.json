@@ -1,6 +1,7 @@
 {
   "A text banner displayed at the top of all pages. Leave empty to disable.": "A text banner displayed at the top of all pages. Leave empty to disable.",
   "Add animation effects to the banner background.": "Add animation effects to the banner background.",
+  "Automatically bind this subscription plan to new users upon registration": "Automatically bind this subscription plan to new users upon registration",
   "Choose a preset effect and customize colors and speed.": "Choose a preset effect and customize colors and speed.",
   "Comma-separated color values for the gradient.": "Comma-separated color values for the gradient.",
   "Configure the banner background style.": "Configure the banner background style.",
