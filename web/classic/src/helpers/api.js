@@ -42,7 +42,7 @@ function redirectToOAuthUrl(url, options = {}) {
   const targetUrl = typeof url === 'string' ? url : url.toString();
 
   if (openInNewTab) {
-    window.open(targetUrl, '_blank');
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
     return;
   }
 

@@ -55,7 +55,7 @@ const ContentModal = ({
   };
 
   const handleOpenInNewTab = () => {
-    window.open(modalContent, '_blank');
+    window.open(modalContent, '_blank', 'noopener,noreferrer');
   };
 
   const renderVideoContent = () => {

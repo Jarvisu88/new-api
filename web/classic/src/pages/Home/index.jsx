@@ -233,6 +233,7 @@ const Home = () => {
                         window.open(
                           'https://github.com/QuantumNous/new-api',
                           '_blank',
+                          'noopener,noreferrer',
                         )
                       }
                     >
@@ -244,7 +245,7 @@ const Home = () => {
                         size={isMobile ? 'default' : 'large'}
                         className='flex items-center !rounded-3xl px-6 py-2'
                         icon={<IconFile />}
-                        onClick={() => window.open(docsLink, '_blank')}
+                        onClick={() => window.open(docsLink, '_blank', 'noopener,noreferrer')}
                       >
                         {t('文档')}
                       </Button>

@@ -257,7 +257,7 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
       url = url.replaceAll('{key}', `sk-${fullKey}`);
     }
 
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // Manage token function (delete, enable, disable)
