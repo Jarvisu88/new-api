@@ -26,6 +26,7 @@ import ModelHeader from './components/ModelHeader';
 import ModelBasicInfo from './components/ModelBasicInfo';
 import ModelEndpoints from './components/ModelEndpoints';
 import ModelPricingTable from './components/ModelPricingTable';
+import ModelPerformanceMetrics from './components/ModelPerformanceMetrics';
 import DynamicPricingBreakdown from './components/DynamicPricingBreakdown';
 
 const { Text } = Typography;
@@ -106,6 +107,13 @@ const ModelDetailSideSheet = ({
                 </div>
               </>
             )}
+            <Divider margin={16} />
+            <div style={{ padding: '0 24px' }}>
+              <ModelPerformanceMetrics
+                modelName={modelData.model_name}
+                t={t}
+              />
+            </div>
             <Divider margin={16} />
             <div style={{ padding: '0 24px' }}>
               <ModelPricingTable

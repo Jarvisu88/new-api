@@ -24,8 +24,13 @@ import {
   renderModelTag,
   stringToColor,
   calculateModelPrice,
+  formatLatencyMs,
   getModelPriceItems,
+  formatSuccessRate,
+  formatTps,
+  getLatencyColor,
   getLobeHubIcon,
+  getSuccessRateColor,
 } from '../../../../../helpers';
 import {
   renderLimitedItems,
@@ -113,6 +118,7 @@ export const getPricingTableColumns = ({
   tokenUnit,
   displayPrice,
   showRatio,
+  showPerfMetrics,
 }) => {
   const isMobile = useIsMobile();
   const priceDataCache = new WeakMap();
@@ -163,6 +169,44 @@ export const getPricingTableColumns = ({
       return renderQuotaType(parseInt(text), t);
     },
     sorter: (a, b) => a.quota_type - b.quota_type,
+  };
+
+  const perfColumn = {
+    title: t('性能'),
+    dataIndex: 'perf_metrics',
+    render: (_, record) => {
+      const metrics = record.perf_metrics;
+      if (!metrics) {
+        return <span className='text-gray-400'>-</span>;
+      }
+      return (
+        <Space wrap spacing={4}>
+          <Tooltip content={t('平均延迟')}>
+            <Tag
+              color={getLatencyColor(metrics.avg_latency_ms)}
+              shape='circle'
+              size='small'
+            >
+              {formatLatencyMs(metrics.avg_latency_ms)}
+            </Tag>
+          </Tooltip>
+          <Tooltip content={t('成功率')}>
+            <Tag
+              color={getSuccessRateColor(metrics.success_rate)}
+              shape='circle'
+              size='small'
+            >
+              {formatSuccessRate(metrics.success_rate)}
+            </Tag>
+          </Tooltip>
+          <Tooltip content={t('平均吞吐')}>
+            <Tag color='blue' shape='circle' size='small'>
+              {formatTps(metrics.avg_tps)}
+            </Tag>
+          </Tooltip>
+        </Space>
+      );
+    },
   };
 
   const descriptionColumn = {
@@ -251,6 +295,9 @@ export const getPricingTableColumns = ({
 
   const columns = [...baseColumns];
   columns.push(endpointColumn);
+  if (showPerfMetrics) {
+    columns.push(perfColumn);
+  }
   if (showRatio) {
     columns.push(ratioColumn);
   }

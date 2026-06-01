@@ -1,12 +1,20 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react'
-import { useNavigate, getRouteApi } from '@tanstack/react-router'
+import { useState, useCallback, type ReactNode } from 'react'
 import { useQueryClient, useIsFetching } from '@tanstack/react-query'
-import { ChevronDown, Eye, EyeOff, Loader2, RotateCcw, Search } from 'lucide-react'
+import { useNavigate, getRouteApi } from '@tanstack/react-router'
+import {
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Loader2,
+  RotateCcw,
+  Search,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useIsAdmin } from '@/hooks/use-admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -14,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { LOG_TYPES } from '../constants'
 import { buildSearchParams } from '../lib/filter'
 import { getDefaultTimeRange } from '../lib/utils'
@@ -30,12 +39,51 @@ function isLogTypeValue(value: string): value is LogTypeValue {
   return (logTypeValues as readonly string[]).includes(value)
 }
 
+function getInitialFilters(
+  searchParams: Record<string, unknown>
+): CommonLogFilters {
+  const { start, end } = getDefaultTimeRange()
+  return {
+    startTime:
+      typeof searchParams.startTime === 'number'
+        ? new Date(searchParams.startTime)
+        : start,
+    endTime:
+      typeof searchParams.endTime === 'number'
+        ? new Date(searchParams.endTime)
+        : end,
+    ...(searchParams.channel ? { channel: String(searchParams.channel) } : {}),
+    ...(searchParams.model ? { model: String(searchParams.model) } : {}),
+    ...(searchParams.token ? { token: String(searchParams.token) } : {}),
+    ...(searchParams.group ? { group: String(searchParams.group) } : {}),
+    ...(searchParams.username
+      ? { username: String(searchParams.username) }
+      : {}),
+    ...(searchParams.requestId
+      ? { requestId: String(searchParams.requestId) }
+      : {}),
+  }
+}
+
+function getInitialLogType(type: unknown): LogTypeValue | '' {
+  if (Array.isArray(type) && type.length === 1 && isLogTypeValue(type[0])) {
+    return type[0]
+  }
+  return ''
+}
+
 interface CommonLogsFilterBarProps {
+  autoRefresh: boolean
+  isRefreshing: boolean
+  onAutoRefreshChange: (checked: boolean) => void
   stats?: ReactNode
   viewOptions?: ReactNode
 }
 
 export function CommonLogsFilterBar({
+  autoRefresh,
+  isRefreshing,
+  onAutoRefreshChange,
   stats,
   viewOptions,
 }: CommonLogsFilterBarProps) {
@@ -49,42 +97,14 @@ export function CommonLogsFilterBar({
 
   const [expanded, setExpanded] = useState(false)
   const [filters, setFilters] = useState<CommonLogFilters>(() => {
-    const { start, end } = getDefaultTimeRange()
-    return { startTime: start, endTime: end }
+    return getInitialFilters(searchParams)
   })
-  const [logType, setLogType] = useState<LogTypeValue | ''>('')
-
-  useEffect(() => {
-    const next: Partial<CommonLogFilters> = {}
-    if (searchParams.startTime)
-      next.startTime = new Date(searchParams.startTime)
-    if (searchParams.endTime) next.endTime = new Date(searchParams.endTime)
-    if (searchParams.channel) next.channel = String(searchParams.channel)
-    if (searchParams.model) next.model = searchParams.model
-    if (searchParams.token) next.token = searchParams.token
-    if (searchParams.group) next.group = searchParams.group
-    if (searchParams.username) next.username = searchParams.username
-    if (searchParams.requestId) next.requestId = searchParams.requestId
-
-    if (Object.keys(next).length > 0) {
-      setFilters((prev) => ({ ...prev, ...next }))
-    }
-
-    const typeArr = searchParams.type
-    if (Array.isArray(typeArr) && typeArr.length === 1) {
-      setLogType(typeArr[0])
-    }
-  }, [
-    searchParams.startTime,
-    searchParams.endTime,
-    searchParams.channel,
-    searchParams.model,
-    searchParams.token,
-    searchParams.group,
-    searchParams.username,
-    searchParams.requestId,
-    searchParams.type,
-  ])
+  const [logType, setLogType] = useState<LogTypeValue | ''>(() =>
+    getInitialLogType(searchParams.type)
+  )
+  const [timeRangeExplicit, setTimeRangeExplicit] = useState(
+    () => searchParams.startTime != null || searchParams.endTime != null
+  )
 
   const handleChange = useCallback(
     (field: keyof CommonLogFilters, value: Date | string | undefined) => {
@@ -95,6 +115,10 @@ export function CommonLogsFilterBar({
 
   const handleApply = useCallback(() => {
     const filterParams = buildSearchParams(filters, 'common')
+    if (!timeRangeExplicit) {
+      delete filterParams.startTime
+      delete filterParams.endTime
+    }
     navigate({
       to: '/usage-logs/$section',
       params: { section: 'common' },
@@ -106,21 +130,30 @@ export function CommonLogsFilterBar({
     })
     queryClient.invalidateQueries({ queryKey: ['logs'] })
     queryClient.invalidateQueries({ queryKey: ['usage-logs-stats'] })
-  }, [filters, logType, navigate, queryClient])
+  }, [filters, logType, navigate, queryClient, timeRangeExplicit])
 
   const handleReset = useCallback(() => {
     const { start, end } = getDefaultTimeRange()
     const resetFilters: CommonLogFilters = { startTime: start, endTime: end }
     setFilters(resetFilters)
     setLogType('')
+    setTimeRangeExplicit(false)
 
     navigate({
       to: '/usage-logs/$section',
       params: { section: 'common' },
       search: {
         page: 1,
-        startTime: start.getTime(),
-        endTime: end.getTime(),
+        type: undefined,
+        filter: undefined,
+        model: undefined,
+        token: undefined,
+        channel: undefined,
+        group: undefined,
+        username: undefined,
+        requestId: undefined,
+        startTime: undefined,
+        endTime: undefined,
       },
     })
     queryClient.invalidateQueries({ queryKey: ['logs'] })
@@ -148,6 +181,7 @@ export function CommonLogsFilterBar({
           start={filters.startTime}
           end={filters.endTime}
           onChange={({ start, end }) => {
+            setTimeRangeExplicit(true)
             handleChange('startTime', start)
             handleChange('endTime', end)
           }}
@@ -208,9 +242,7 @@ export function CommonLogsFilterBar({
       <div
         className={cn(
           'grid gap-2 overflow-hidden transition-all duration-200',
-          expanded
-            ? 'grid-rows-[1fr] opacity-100'
-            : 'grid-rows-[0fr] opacity-0'
+          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         )}
       >
         <div className='min-h-0 overflow-hidden'>
@@ -260,6 +292,31 @@ export function CommonLogsFilterBar({
         </div>
 
         <div className='flex shrink-0 items-center gap-2 self-end sm:self-auto'>
+          <div className='flex h-8 items-center gap-2 rounded-md border px-2.5'>
+            <span
+              className={cn(
+                'size-2 rounded-full',
+                autoRefresh && isRefreshing
+                  ? 'bg-emerald-500'
+                  : autoRefresh
+                    ? 'bg-emerald-500/55'
+                    : 'bg-muted-foreground/35'
+              )}
+              aria-hidden='true'
+            />
+            <Label
+              htmlFor='usage-logs-auto-refresh'
+              className='cursor-pointer text-xs font-medium'
+            >
+              {t('Auto refresh')}
+            </Label>
+            <Switch
+              id='usage-logs-auto-refresh'
+              checked={autoRefresh}
+              onCheckedChange={onAutoRefreshChange}
+              aria-label={t('Auto refresh')}
+            />
+          </div>
           <button
             type='button'
             className='text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center rounded-md border transition-colors'
@@ -282,7 +339,12 @@ export function CommonLogsFilterBar({
             <RotateCcw className='size-3.5' />
             {t('Reset')}
           </Button>
-          <Button size='sm' className='h-8' onClick={handleApply} disabled={fetchingLogs > 0}>
+          <Button
+            size='sm'
+            className='h-8'
+            onClick={handleApply}
+            disabled={fetchingLogs > 0}
+          >
             {fetchingLogs > 0 ? (
               <Loader2 className='size-3.5 animate-spin' />
             ) : (

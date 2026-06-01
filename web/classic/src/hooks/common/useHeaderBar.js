@@ -23,7 +23,14 @@ import { useTranslation } from 'react-i18next';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
 import { useSetTheme, useTheme, useActualTheme } from '../../context/Theme';
-import { getLogo, getSystemName, API, showSuccess } from '../../helpers';
+import {
+  getLogo,
+  getSystemName,
+  API,
+  showSuccess,
+  normalizeHeaderNavModules,
+  getHeaderNavModuleRequireAuth,
+} from '../../helpers';
 import { normalizeLanguage } from '../../i18n/language';
 import { useIsMobile } from './useIsMobile';
 import { useSidebarCollapsed } from './useSidebarCollapsed';
@@ -37,7 +44,9 @@ export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   const [collapsed, toggleCollapsed] = useSidebarCollapsed();
   const [logoLoaded, setLogoLoaded] = useState(false);
   const navigate = useNavigate();
-  const [currentLang, setCurrentLang] = useState(normalizeLanguage(i18n.language));
+  const [currentLang, setCurrentLang] = useState(
+    normalizeLanguage(i18n.language),
+  );
   const location = useLocation();
 
   const loading = statusState?.status === undefined;
@@ -55,37 +64,17 @@ export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   // 获取顶栏模块配置
   const headerNavModulesConfig = statusState?.status?.HeaderNavModules;
 
-  // 使用useMemo确保headerNavModules正确响应statusState变化
   const headerNavModules = useMemo(() => {
-    if (headerNavModulesConfig) {
-      try {
-        const modules = JSON.parse(headerNavModulesConfig);
-
-        // 处理向后兼容性：如果pricing是boolean，转换为对象格式
-        if (typeof modules.pricing === 'boolean') {
-          modules.pricing = {
-            enabled: modules.pricing,
-            requireAuth: false, // 默认不需要登录鉴权
-          };
-        }
-
-        return modules;
-      } catch (error) {
-        console.error('解析顶栏模块配置失败:', error);
-        return null;
-      }
-    }
-    return null;
+    return normalizeHeaderNavModules(headerNavModulesConfig);
   }, [headerNavModulesConfig]);
 
-  // 获取模型广场权限配置
+  // 获取公开导航页面权限配置
   const pricingRequireAuth = useMemo(() => {
-    if (headerNavModules?.pricing) {
-      return typeof headerNavModules.pricing === 'object'
-        ? headerNavModules.pricing.requireAuth
-        : false; // 默认不需要登录
-    }
-    return false; // 默认不需要登录
+    return getHeaderNavModuleRequireAuth(headerNavModules, 'pricing');
+  }, [headerNavModules]);
+
+  const rankingsRequireAuth = useMemo(() => {
+    return getHeaderNavModuleRequireAuth(headerNavModules, 'rankings');
   }, [headerNavModules]);
 
   const isConsoleRoute = location.pathname.startsWith('/console');
@@ -238,6 +227,7 @@ export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     drawerOpen,
     headerNavModules,
     pricingRequireAuth,
+    rankingsRequireAuth,
 
     // Actions
     logout,

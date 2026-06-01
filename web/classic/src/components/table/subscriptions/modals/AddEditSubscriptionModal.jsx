@@ -75,6 +75,9 @@ const AddEditSubscriptionModal = ({
   const [loading, setLoading] = useState(false);
   const [groupOptions, setGroupOptions] = useState([]);
   const [groupLoading, setGroupLoading] = useState(false);
+  const [waffoProductOptions, setWaffoProductOptions] = useState([]);
+  const [waffoProductLoading, setWaffoProductLoading] = useState(false);
+  const [waffoProductCreating, setWaffoProductCreating] = useState(false);
   const isMobile = useIsMobile();
   const formApiRef = useRef(null);
   const isEdit = editingPlan?.plan?.id !== undefined;
@@ -97,6 +100,8 @@ const AddEditSubscriptionModal = ({
     upgrade_group: '',
     stripe_price_id: '',
     creem_product_id: '',
+    allow_balance_pay: true,
+    waffo_pancake_product_id: '',
   });
 
   const buildFormValues = () => {
@@ -123,6 +128,8 @@ const AddEditSubscriptionModal = ({
       upgrade_group: p.upgrade_group || '',
       stripe_price_id: p.stripe_price_id || '',
       creem_product_id: p.creem_product_id || '',
+      allow_balance_pay: p.allow_balance_pay !== false,
+      waffo_pancake_product_id: p.waffo_pancake_product_id || '',
     };
   };
 
@@ -140,6 +147,65 @@ const AddEditSubscriptionModal = ({
       .catch(() => setGroupOptions([]))
       .finally(() => setGroupLoading(false));
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    setWaffoProductLoading(true);
+    API.post('/api/option/waffo-pancake/subscription-product-options')
+      .then((res) => {
+        if (res.data?.message === 'success') {
+          setWaffoProductOptions(res.data?.data?.products || []);
+        } else {
+          setWaffoProductOptions([]);
+        }
+      })
+      .catch(() => setWaffoProductOptions([]))
+      .finally(() => setWaffoProductLoading(false));
+  }, [visible]);
+
+  const createWaffoProduct = async () => {
+    const values = formApiRef.current?.getValues?.() || buildFormValues();
+    const title = String(values.title || '').trim();
+    const amount = Number(values.price_amount || 0);
+    if (!title) {
+      showError(t('套餐标题不能为空'));
+      return;
+    }
+    if (amount <= 0) {
+      showError(t('套餐价格必须大于 0'));
+      return;
+    }
+
+    setWaffoProductCreating(true);
+    try {
+      const res = await API.post('/api/option/waffo-pancake/subscription-product', {
+        name: title,
+        amount: amount.toFixed(2),
+      });
+      if (res.data?.message === 'success') {
+        const data = res.data?.data || {};
+        const productId = data.product_id || '';
+        if (productId) {
+          formApiRef.current?.setValue('waffo_pancake_product_id', productId);
+          setWaffoProductOptions((prev) => [
+            {
+              id: productId,
+              name: data.product_name || title,
+              status: 'active',
+            },
+            ...(prev || []).filter((product) => product.id !== productId),
+          ]);
+        }
+        showSuccess(t('已创建 Waffo Pancake 商品'));
+      } else {
+        showError(res.data?.data || res.data?.message || t('创建失败'));
+      }
+    } catch (e) {
+      showError(t('创建失败'));
+    } finally {
+      setWaffoProductCreating(false);
+    }
+  };
 
   const submit = async (values) => {
     if (!values.title || values.title.trim() === '') {
@@ -164,6 +230,8 @@ const AddEditSubscriptionModal = ({
           max_purchase_per_user: Number(values.max_purchase_per_user || 0),
           total_amount: displayAmountToQuota(values.total_amount),
           upgrade_group: values.upgrade_group || '',
+          allow_balance_pay: values.allow_balance_pay !== false,
+          waffo_pancake_product_id: values.waffo_pancake_product_id || '',
         },
       };
       if (editingPlan?.plan?.id) {
@@ -516,12 +584,21 @@ const AddEditSubscriptionModal = ({
                         {t('第三方支付配置')}
                       </Text>
                       <div className='text-xs text-gray-600'>
-                        {t('Stripe/Creem 商品ID（可选）')}
+                        {t('余额、Stripe、Creem、Waffo Pancake 支付配置')}
                       </div>
                     </div>
                   </div>
 
                   <Row gutter={12}>
+                    <Col span={24}>
+                      <Form.Switch
+                        field='allow_balance_pay'
+                        label={t('允许余额支付')}
+                        extraText={t('开启后用户可直接用账户余额购买该订阅套餐')}
+                        size='large'
+                      />
+                    </Col>
+
                     <Col span={24}>
                       <Form.Input
                         field='stripe_price_id'
@@ -538,6 +615,54 @@ const AddEditSubscriptionModal = ({
                         placeholder='prod_...'
                         showClear
                       />
+                    </Col>
+
+                    <Col span={24}>
+                      <Form.Slot label='Waffo Pancake ProductId'>
+                        <div className='flex gap-2'>
+                          {waffoProductOptions.length > 0 ? (
+                            <Select
+                              value={values.waffo_pancake_product_id}
+                              onChange={(value) =>
+                                formApiRef.current?.setValue(
+                                  'waffo_pancake_product_id',
+                                  value || '',
+                                )
+                              }
+                              loading={waffoProductLoading}
+                              showClear
+                              filter
+                              placeholder={t('选择或创建商品')}
+                              style={{ flex: 1 }}
+                              optionList={waffoProductOptions.map((product) => ({
+                                value: product.id,
+                                label: `${product.name || product.id} (${product.id})`,
+                              }))}
+                            />
+                          ) : (
+                            <Form.Input
+                              field='waffo_pancake_product_id'
+                              noLabel
+                              placeholder='prod_...'
+                              showClear
+                              style={{ flex: 1 }}
+                            />
+                          )}
+                          <Button
+                            theme='light'
+                            type='primary'
+                            onClick={createWaffoProduct}
+                            loading={waffoProductCreating}
+                          >
+                            {t('创建商品')}
+                          </Button>
+                        </div>
+                        <Text type='tertiary' size='small'>
+                          {t(
+                            '用于 Waffo Pancake 订阅支付；创建商品前请先保存标题和价格。',
+                          )}
+                        </Text>
+                      </Form.Slot>
                     </Col>
                   </Row>
                 </Card>

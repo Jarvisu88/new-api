@@ -81,6 +81,7 @@ const Dashboard = () => {
     dashboardData.times,
     dashboardData.trendData,
     dashboardData.performanceMetrics,
+    dashboardData.perfMetricsSummary,
     dashboardData.navigate,
     dashboardData.t,
   );
@@ -103,6 +104,7 @@ const Dashboard = () => {
     });
     await loadUserData();
     await dashboardData.loadUptimeData();
+    await dashboardData.loadPerfMetricsSummary();
   };
 
   const handleRefresh = async () => {
@@ -176,7 +178,7 @@ const Dashboard = () => {
 
       <StatsCards
         groupedStatsData={groupedStatsData}
-        loading={dashboardData.loading}
+        loading={dashboardData.loading || dashboardData.perfMetricsLoading}
         getTrendSpec={getTrendSpec}
         CARD_PROPS={CARD_PROPS}
         CHART_CONFIG={CHART_CONFIG}

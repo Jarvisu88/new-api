@@ -11,6 +11,7 @@ import { buildApiParams } from '../lib/utils'
 import { useUsageLogsContext } from './usage-logs-provider'
 
 const route = getRouteApi('/_authenticated/usage-logs/$section')
+const AUTO_REFRESH_INTERVAL_MS = 5000
 
 function StatBadge(props: {
   label: string
@@ -18,24 +19,28 @@ function StatBadge(props: {
   accent: string
 }) {
   return (
-    <span className='inline-flex h-7 items-center gap-2 rounded-md border border-border/60 bg-muted/25 px-2.5 text-xs shadow-xs'>
+    <span className='border-border/60 bg-muted/25 inline-flex h-7 items-center gap-2 rounded-md border px-2.5 text-xs shadow-xs'>
       <span className={cn('h-3.5 w-0.5 rounded-full', props.accent)} />
       <span className='text-muted-foreground'>{props.label}</span>
-      <span className='font-mono font-semibold tabular-nums text-foreground/85'>
+      <span className='text-foreground/85 font-mono font-semibold tabular-nums'>
         {props.value}
       </span>
     </span>
   )
 }
 
-export function CommonLogsStats() {
+interface CommonLogsStatsProps {
+  autoRefresh: boolean
+}
+
+export function CommonLogsStats({ autoRefresh }: CommonLogsStatsProps) {
   const { t } = useTranslation()
   const isAdmin = useIsAdmin()
   const searchParams = route.useSearch()
   const { sensitiveVisible } = useUsageLogsContext()
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['usage-logs-stats', isAdmin, searchParams],
+    queryKey: ['usage-logs-stats', isAdmin, searchParams, autoRefresh],
     queryFn: async () => {
       const params = buildApiParams({
         page: 1,
@@ -43,6 +48,7 @@ export function CommonLogsStats() {
         searchParams,
         columnFilters: [],
         isAdmin,
+        defaultEndWhenMissing: autoRefresh,
       })
 
       const result = isAdmin
@@ -54,6 +60,11 @@ export function CommonLogsStats() {
         : DEFAULT_LOG_STATS
     },
     placeholderData: (previousData) => previousData,
+    refetchInterval: (query) =>
+      autoRefresh && query.state.fetchStatus === 'idle'
+        ? AUTO_REFRESH_INTERVAL_MS
+        : false,
+    refetchOnWindowFocus: false,
   })
 
   if (isLoading) {

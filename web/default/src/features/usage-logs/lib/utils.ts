@@ -97,10 +97,17 @@ export function buildQueryParams(
  */
 function buildTimeRangeParams(
   searchParams: Record<string, unknown>,
-  useMilliseconds: boolean
+  useMilliseconds: boolean,
+  defaultEndWhenMissing = false
 ): { start_timestamp?: number; end_timestamp?: number } {
-  const hasTimeParams = searchParams.startTime ?? searchParams.endTime
-  const defaultTimeRange = !hasTimeParams ? getDefaultTimeRange() : null
+  const hasStartTime =
+    searchParams.startTime != null && searchParams.startTime !== ''
+  const hasEndTime = searchParams.endTime != null && searchParams.endTime !== ''
+  const hasTimeParams = hasStartTime || hasEndTime
+  const needsDefaultRange = !hasTimeParams
+  const needsDefaultEnd = defaultEndWhenMissing && !hasEndTime
+  const defaultTimeRange =
+    needsDefaultRange || needsDefaultEnd ? getDefaultTimeRange() : null
 
   const convertTimestamp = (timestamp: number) =>
     useMilliseconds ? timestamp : timestampToSeconds(timestamp)
@@ -113,9 +120,12 @@ function buildTimeRangeParams(
   return {
     start_timestamp: getTimestamp(
       searchParams.startTime,
-      defaultTimeRange?.start
+      needsDefaultRange ? defaultTimeRange?.start : undefined
     ),
-    end_timestamp: getTimestamp(searchParams.endTime, defaultTimeRange?.end),
+    end_timestamp: getTimestamp(
+      searchParams.endTime,
+      needsDefaultRange || needsDefaultEnd ? defaultTimeRange?.end : undefined
+    ),
   }
 }
 
@@ -158,8 +168,16 @@ export function buildApiParams(config: {
   searchParams: Record<string, unknown>
   columnFilters?: Array<{ id: string; value: unknown }>
   isAdmin: boolean
+  defaultEndWhenMissing?: boolean
 }): GetLogsParams {
-  const { page, pageSize, searchParams, columnFilters = [], isAdmin } = config
+  const {
+    page,
+    pageSize,
+    searchParams,
+    columnFilters = [],
+    isAdmin,
+    defaultEndWhenMissing = false,
+  } = config
 
   // Helper to process type parameter (single value from array)
   const processType = (value: unknown) => {
@@ -186,7 +204,7 @@ export function buildApiParams(config: {
     ...(searchParams.requestId
       ? { request_id: String(searchParams.requestId) }
       : {}),
-    ...buildTimeRangeParams(searchParams, false),
+    ...buildTimeRangeParams(searchParams, false, defaultEndWhenMissing),
   }
 
   // Override with column filters if present
@@ -230,8 +248,15 @@ export function buildApiParams(config: {
 export async function fetchLogsByCategory(
   config: FetchLogsConfig
 ): Promise<GetLogsResponse> {
-  const { logCategory, isAdmin, page, pageSize, searchParams, columnFilters } =
-    config
+  const {
+    logCategory,
+    isAdmin,
+    page,
+    pageSize,
+    searchParams,
+    columnFilters,
+    defaultEndWhenMissing,
+  } = config
 
   if (logCategory === 'common') {
     const params = buildApiParams({
@@ -240,6 +265,7 @@ export async function fetchLogsByCategory(
       searchParams,
       columnFilters,
       isAdmin,
+      defaultEndWhenMissing,
     })
     return isAdmin ? await getAllLogs(params) : await getUserLogs(params)
   }

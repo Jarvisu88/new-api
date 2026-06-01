@@ -32,11 +32,13 @@ import {
   Popconfirm,
   RadioGroup,
   Radio,
+  Select,
   Typography,
 } from '@douyinfe/semi-ui';
 import {
   compareObjects,
   API,
+  DEFAULT_PERF_METRICS_SETTING,
   showError,
   showSuccess,
   showWarning,
@@ -72,6 +74,7 @@ export default function SettingsPerformance(props) {
     'performance_setting.monitor_cpu_threshold': 90,
     'performance_setting.monitor_memory_threshold': 90,
     'performance_setting.monitor_disk_threshold': 95,
+    ...DEFAULT_PERF_METRICS_SETTING,
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -325,6 +328,73 @@ export default function SettingsPerformance(props) {
                   />
                 </Col>
               )}
+            </Row>
+          </Form.Section>
+
+          <Form.Section text={t('模型性能指标')}>
+            <Banner
+              type='info'
+              description={t(
+                '启用后会按模型和分组聚合 Relay 请求延迟、TTFT、成功率和吞吐指标，用于 Dashboard 与模型广场展示。',
+              )}
+              style={{ marginBottom: 16 }}
+            />
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                <Form.Switch
+                  field={'perf_metrics_setting.enabled'}
+                  label={t('启用模型性能指标')}
+                  extraText={t('记录成功率、延迟、TTFT 与吞吐')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={handleFieldChange('perf_metrics_setting.enabled')}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                <Form.InputNumber
+                  field={'perf_metrics_setting.flush_interval'}
+                  label={t('刷新间隔 (分钟)')}
+                  extraText={t('将内存指标写入数据库的间隔')}
+                  min={1}
+                  max={1440}
+                  onChange={handleFieldChange(
+                    'perf_metrics_setting.flush_interval',
+                  )}
+                  disabled={!inputs['perf_metrics_setting.enabled']}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                <Form.Select
+                  field={'perf_metrics_setting.bucket_time'}
+                  label={t('聚合粒度')}
+                  extraText={t('影响趋势图的时间桶大小')}
+                  onChange={handleFieldChange('perf_metrics_setting.bucket_time')}
+                  disabled={!inputs['perf_metrics_setting.enabled']}
+                >
+                  <Select.Option value='minute'>{t('每分钟')}</Select.Option>
+                  <Select.Option value='5min'>{t('每 5 分钟')}</Select.Option>
+                  <Select.Option value='hour'>{t('每小时')}</Select.Option>
+                </Form.Select>
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                <Form.InputNumber
+                  field={'perf_metrics_setting.retention_days'}
+                  label={t('保留天数')}
+                  extraText={t('0 表示不自动清理历史指标')}
+                  min={0}
+                  max={3650}
+                  onChange={handleFieldChange(
+                    'perf_metrics_setting.retention_days',
+                  )}
+                  disabled={!inputs['perf_metrics_setting.enabled']}
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Button size='default' onClick={onSubmit}>
+                {t('保存模型性能指标设置')}
+              </Button>
             </Row>
           </Form.Section>
 

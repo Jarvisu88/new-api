@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import {
@@ -36,12 +36,14 @@ import { PageFooterPortal } from '@/components/layout'
 import { DEFAULT_LOGS_DATA, LOG_TYPE_ENUM } from '../constants'
 import { useColumnsByCategory } from '../lib/columns'
 import { fetchLogsByCategory } from '../lib/utils'
-import type { LogCategory } from '../types'
+import type { GetLogsResponse, LogCategory } from '../types'
 import { CommonLogsFilterBar } from './common-logs-filter-bar'
 import { CommonLogsStats } from './common-logs-stats'
 import { TaskLogsFilterBar } from './task-logs-filter-bar'
 
 const route = getRouteApi('/_authenticated/usage-logs/$section')
+const AUTO_REFRESH_INTERVAL_MS = 5000
+type LogsData = NonNullable<GetLogsResponse['data']> | typeof DEFAULT_LOGS_DATA
 
 const logTypeRowTint: Record<number, string> = {
   [LOG_TYPE_ENUM.ERROR]: 'bg-rose-50/40 dark:bg-rose-950/20',
@@ -57,6 +59,9 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
   const isAdmin = useIsAdmin()
   const isMobile = useMediaQuery('(max-width: 640px)')
   const searchParams = route.useSearch()
+  const commonFilterKey = JSON.stringify(searchParams)
+  const isCommon = logCategory === 'common'
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
   const {
     columnFilters,
@@ -91,11 +96,12 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     ],
   })
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching } = useQuery<LogsData>({
     queryKey: [
       'logs',
       logCategory,
       isAdmin,
+      isCommon ? autoRefresh : null,
       pagination.pageIndex + 1,
       pagination.pageSize,
       columnFilters,
@@ -110,6 +116,7 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
         pageSize: pagination.pageSize,
         searchParams,
         columnFilters,
+        defaultEndWhenMissing: autoRefresh,
       })
 
       if (!result?.success) {
@@ -125,6 +132,13 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
       }
       return undefined
     },
+    refetchInterval: isCommon
+      ? (query) =>
+          autoRefresh && query.state.fetchStatus === 'idle'
+            ? AUTO_REFRESH_INTERVAL_MS
+            : false
+      : false,
+    refetchOnWindowFocus: isCommon ? false : undefined,
   })
 
   const logs = data?.items || []
@@ -155,8 +169,6 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     ensurePageInRange(pageCount)
   }, [pageCount, ensurePageInRange])
 
-  const isCommon = logCategory === 'common'
-
   const renderRows = () => {
     const rows = table.getRowModel().rows
     if (rows.length === 0) return null
@@ -169,10 +181,7 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
         isCommon && logType != null ? (logTypeRowTint[logType] ?? '') : ''
 
       return (
-        <TableRow
-          key={row.id}
-          className={cn('transition-colors', tintClass)}
-        >
+        <TableRow key={row.id} className={cn('transition-colors', tintClass)}>
           {row.getVisibleCells().map((cell) => (
             <TableCell key={cell.id} className={isCommon ? 'py-2' : 'py-3.5'}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -187,14 +196,18 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     <>
       <div className='space-y-3 sm:space-y-4'>
         {logCategory === 'common' ? (
-          <div className='rounded-md border bg-card/50 p-2 shadow-xs sm:p-3'>
+          <div className='bg-card/50 rounded-md border p-2 shadow-xs sm:p-3'>
             <CommonLogsFilterBar
-              stats={<CommonLogsStats />}
+              key={commonFilterKey}
+              autoRefresh={autoRefresh}
+              isRefreshing={isFetching}
+              onAutoRefreshChange={setAutoRefresh}
+              stats={<CommonLogsStats autoRefresh={autoRefresh} />}
               viewOptions={<DataTableViewOptions table={table} />}
             />
           </div>
         ) : (
-          <div className='rounded-md border bg-card/50 p-2 shadow-xs sm:p-3'>
+          <div className='bg-card/50 rounded-md border p-2 shadow-xs sm:p-3'>
             <TaskLogsFilterBar
               logCategory={logCategory}
               viewOptions={<DataTableViewOptions table={table} />}

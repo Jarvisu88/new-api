@@ -25,6 +25,9 @@ import { stringToColor } from '../../../../../helpers';
 const { Text } = Typography;
 
 const ModelBasicInfo = ({ modelData, vendorsMap = {}, t }) => {
+  const providerName =
+    modelData?.vendor_name || modelData?.owned_by || modelData?.owner_by || '';
+
   // 获取模型描述（使用后端真实数据）
   const getModelDescription = () => {
     if (!modelData) return t('暂无模型描述');
@@ -72,6 +75,16 @@ const ModelBasicInfo = ({ modelData, vendorsMap = {}, t }) => {
       </div>
       <div className='text-gray-600'>
         <p className='mb-4'>{getModelDescription()}</p>
+        {providerName && (
+          <div className='mb-4'>
+            <Text type='secondary' className='text-xs'>
+              {t('供应商')}:
+            </Text>{' '}
+            <Tag shape='circle' size='small'>
+              {providerName}
+            </Tag>
+          </div>
+        )}
         {getModelTags().length > 0 && (
           <Space wrap>
             {getModelTags().map((tag, index) => (

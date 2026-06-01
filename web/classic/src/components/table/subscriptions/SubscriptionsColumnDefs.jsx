@@ -205,10 +205,17 @@ const renderResetPeriod = (text, record, t) => {
 const renderPaymentConfig = (text, record, t, enableEpay) => {
   const hasStripe = !!record?.plan?.stripe_price_id;
   const hasCreem = !!record?.plan?.creem_product_id;
+  const hasBalance = record?.plan?.allow_balance_pay !== false;
+  const hasWaffoPancake = !!record?.plan?.waffo_pancake_product_id;
   const hasEpay = !!enableEpay;
 
   return (
     <Space spacing={4}>
+      {hasBalance && (
+        <Tag color='green' shape='circle'>
+          {t('余额')}
+        </Tag>
+      )}
       {hasStripe && (
         <Tag color='violet' shape='circle'>
           Stripe
@@ -217,6 +224,11 @@ const renderPaymentConfig = (text, record, t, enableEpay) => {
       {hasCreem && (
         <Tag color='cyan' shape='circle'>
           Creem
+        </Tag>
+      )}
+      {hasWaffoPancake && (
+        <Tag color='pink' shape='circle'>
+          Waffo Pancake
         </Tag>
       )}
       {hasEpay && (

@@ -7,4 +7,12 @@ Makefile
 docs
 .eslintcache
 .gocache
+.gomodcache
+.codex-temp
+logs
+data
+one-api.db
 /web/node_modules
+/web/classic/node_modules
+/web/classic/dist
+/web/default

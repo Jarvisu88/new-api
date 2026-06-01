@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -25,6 +24,7 @@ type Pricing struct {
 	ModelRatio             float64                 `json:"model_ratio"`
 	ModelPrice             float64                 `json:"model_price"`
 	OwnerBy                string                  `json:"owner_by"`
+	OwnedBy                string                  `json:"owned_by,omitempty"`
 	CompletionRatio        float64                 `json:"completion_ratio"`
 	CacheRatio             *float64                `json:"cache_ratio,omitempty"`
 	CreateCacheRatio       *float64                `json:"create_cache_ratio,omitempty"`
@@ -189,6 +189,7 @@ func updatePricing() {
 	}
 
 	modelGroupsMap := make(map[string]*types.Set[string])
+	modelOwnerMap := buildPricingModelOwnerMap(enableAbilities)
 
 	for _, ability := range enableAbilities {
 		groups, ok := modelGroupsMap[ability.Model]
@@ -220,7 +221,7 @@ func updatePricing() {
 			continue
 		}
 		var raw map[string]interface{}
-		if err := json.Unmarshal([]byte(meta.Endpoints), &raw); err == nil {
+		if err := common.Unmarshal([]byte(meta.Endpoints), &raw); err == nil {
 			endpoints := make([]string, 0, len(raw))
 			for k, v := range raw {
 				switch v.(type) {
@@ -264,7 +265,7 @@ func updatePricing() {
 			continue
 		}
 		var raw map[string]interface{}
-		if err := json.Unmarshal([]byte(meta.Endpoints), &raw); err == nil {
+		if err := common.Unmarshal([]byte(meta.Endpoints), &raw); err == nil {
 			for k, v := range raw {
 				switch val := v.(type) {
 				case string:
@@ -291,6 +292,10 @@ func updatePricing() {
 			ModelName:              model,
 			EnableGroup:            groups.Items(),
 			SupportedEndpointTypes: modelSupportEndpointTypes[model],
+		}
+		if owner := modelOwnerMap[model]; owner != "" {
+			pricing.OwnerBy = owner
+			pricing.OwnedBy = owner
 		}
 
 		// 补充模型元数据（描述、标签、供应商、状态）
@@ -356,6 +361,36 @@ func updatePricing() {
 	modelEnableGroupsLock.Unlock()
 
 	lastGetPricingTime = time.Now()
+}
+
+func buildPricingModelOwnerMap(enableAbilities []AbilityWithChannel) map[string]string {
+	ownerByModel := make(map[string]string)
+	ownerPriorityByModel := make(map[string]int64)
+	ownerChannelTypeByModel := make(map[string]int)
+
+	for _, ability := range enableAbilities {
+		if strings.TrimSpace(ability.Model) == "" || ability.ChannelType == constant.ChannelTypeUnknown {
+			continue
+		}
+		owner := constant.GetChannelTypeName(ability.ChannelType)
+		if owner == "" || owner == "Unknown" {
+			continue
+		}
+		priority := int64(0)
+		if ability.Priority != nil {
+			priority = *ability.Priority
+		}
+		currentPriority, exists := ownerPriorityByModel[ability.Model]
+		currentChannelType := ownerChannelTypeByModel[ability.Model]
+		if exists && (currentPriority > priority || (currentPriority == priority && currentChannelType <= ability.ChannelType)) {
+			continue
+		}
+		ownerByModel[ability.Model] = owner
+		ownerPriorityByModel[ability.Model] = priority
+		ownerChannelTypeByModel[ability.Model] = ability.ChannelType
+	}
+
+	return ownerByModel
 }
 
 // GetSupportedEndpointMap 返回全局端点到路径的映射

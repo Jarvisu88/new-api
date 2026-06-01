@@ -18,10 +18,21 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { lazy, Suspense, useContext, useMemo } from 'react';
-import { Route, Routes, useLocation, useParams } from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 import Loading from './components/common/ui/Loading';
 import User from './pages/User';
-import { AuthRedirect, PrivateRoute, AdminRoute } from './helpers';
+import {
+  AuthRedirect,
+  PrivateRoute,
+  AdminRoute,
+  getHeaderNavModuleRequireAuth,
+} from './helpers';
 import RegisterForm from './components/auth/RegisterForm';
 import LoginForm from './components/auth/LoginForm';
 import NotFound from './pages/NotFound';
@@ -40,6 +51,7 @@ import Chat from './pages/Chat';
 import Chat2Link from './pages/Chat2Link';
 import Midjourney from './pages/Midjourney';
 import Pricing from './pages/Pricing';
+import Rankings from './pages/Rankings';
 import Task from './pages/Task';
 import ModelPage from './pages/Model';
 import ModelDeploymentPage from './pages/ModelDeployment';
@@ -65,27 +77,16 @@ function App() {
   const location = useLocation();
   const [statusState] = useContext(StatusContext);
 
-  // 获取模型广场权限配置
+  const headerNavModulesConfig = statusState?.status?.HeaderNavModules;
+
+  // 获取顶栏公开页面权限配置
   const pricingRequireAuth = useMemo(() => {
-    const headerNavModulesConfig = statusState?.status?.HeaderNavModules;
-    if (headerNavModulesConfig) {
-      try {
-        const modules = JSON.parse(headerNavModulesConfig);
+    return getHeaderNavModuleRequireAuth(headerNavModulesConfig, 'pricing');
+  }, [headerNavModulesConfig]);
 
-        // 处理向后兼容性：如果pricing是boolean，默认不需要登录
-        if (typeof modules.pricing === 'boolean') {
-          return false; // 默认不需要登录鉴权
-        }
-
-        // 如果是对象格式，使用requireAuth配置
-        return modules.pricing?.requireAuth === true;
-      } catch (error) {
-        console.error('解析顶栏模块配置失败:', error);
-        return false; // 默认不需要登录
-      }
-    }
-    return false; // 默认不需要登录
-  }, [statusState?.status?.HeaderNavModules]);
+  const rankingsRequireAuth = useMemo(() => {
+    return getHeaderNavModuleRequireAuth(headerNavModulesConfig, 'rankings');
+  }, [headerNavModulesConfig]);
 
   return (
     <SetupCheck>
@@ -107,6 +108,30 @@ function App() {
           }
         />
         <Route path='/forbidden' element={<Forbidden />} />
+        <Route
+          path='/wallet'
+          element={<Navigate to='/console/topup' replace />}
+        />
+        <Route
+          path='/usage-logs'
+          element={<Navigate to='/console/log' replace />}
+        />
+        <Route
+          path='/profile'
+          element={<Navigate to='/console/personal' replace />}
+        />
+        <Route
+          path='/system-settings'
+          element={<Navigate to='/console/setting' replace />}
+        />
+        <Route
+          path='/channels'
+          element={<Navigate to='/console/channel' replace />}
+        />
+        <Route
+          path='/models'
+          element={<Navigate to='/console/models' replace />}
+        />
         <Route
           path='/console/models'
           element={
@@ -330,6 +355,25 @@ function App() {
             ) : (
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
                 <Pricing />
+              </Suspense>
+            )
+          }
+        />
+        <Route
+          path='/rankings'
+          element={
+            rankingsRequireAuth ? (
+              <PrivateRoute>
+                <Suspense
+                  fallback={<Loading></Loading>}
+                  key={location.pathname}
+                >
+                  <Rankings />
+                </Suspense>
+              </PrivateRoute>
+            ) : (
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <Rankings />
               </Suspense>
             )
           }

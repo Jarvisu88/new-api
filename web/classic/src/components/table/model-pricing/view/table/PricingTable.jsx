@@ -42,6 +42,7 @@ const PricingTable = ({
   displayPrice,
   searchValue,
   showRatio,
+  showPerfMetrics = true,
   compactMode = false,
   openModelDetail,
   t,
@@ -59,6 +60,7 @@ const PricingTable = ({
       tokenUnit,
       displayPrice,
       showRatio,
+      showPerfMetrics,
     });
   }, [
     t,
@@ -72,6 +74,7 @@ const PricingTable = ({
     tokenUnit,
     displayPrice,
     showRatio,
+    showPerfMetrics,
   ]);
 
   // 更新列定义中的 searchValue

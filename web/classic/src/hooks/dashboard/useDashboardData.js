@@ -20,7 +20,13 @@ For commercial licensing, please contact support@quantumnous.com
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API, isAdmin, showError, timestamp2string } from '../../helpers';
+import {
+  API,
+  isAdmin,
+  showError,
+  summarizePerfMetricModels,
+  timestamp2string,
+} from '../../helpers';
 import { getDefaultTime, getInitialTimestamp } from '../../helpers/dashboard';
 import { TIME_OPTIONS } from '../../constants/dashboard.constants';
 import { useIsMobile } from '../common/useIsMobile';
@@ -60,6 +66,10 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const [pieData, setPieData] = useState([{ type: 'null', value: '0' }]);
   const [lineData, setLineData] = useState([]);
   const [modelColors, setModelColors] = useState({});
+  const [perfMetricsSummary, setPerfMetricsSummary] = useState(
+    summarizePerfMetricModels([]),
+  );
+  const [perfMetricsLoading, setPerfMetricsLoading] = useState(false);
 
   // ========== 图表状态 ==========
   const [activeChartTab, setActiveChartTab] = useState('1');
@@ -213,6 +223,27 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     }
   }, [activeUptimeTab]);
 
+  const loadPerfMetricsSummary = useCallback(async () => {
+    setPerfMetricsLoading(true);
+    try {
+      const res = await API.get('/api/perf-metrics/summary', {
+        params: { hours: 24 },
+        skipErrorHandler: true,
+        disableDuplicate: true,
+      });
+      const { success, data } = res.data;
+      if (success) {
+        setPerfMetricsSummary(summarizePerfMetricModels(data?.models || []));
+      } else {
+        setPerfMetricsSummary(summarizePerfMetricModels([]));
+      }
+    } catch (err) {
+      setPerfMetricsSummary(summarizePerfMetricModels([]));
+    } finally {
+      setPerfMetricsLoading(false);
+    }
+  }, []);
+
   const loadUserQuotaData = useCallback(async () => {
     if (!isAdminUser) return [];
     try {
@@ -247,8 +278,9 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const refresh = useCallback(async () => {
     const data = await loadQuotaData();
     await loadUptimeData();
+    await loadPerfMetricsSummary();
     return data;
-  }, [loadQuotaData, loadUptimeData]);
+  }, [loadQuotaData, loadUptimeData, loadPerfMetricsSummary]);
 
   const handleSearchConfirm = useCallback(
     async (updateChartDataCallback) => {
@@ -334,6 +366,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     loadQuotaData,
     loadUserQuotaData,
     loadUptimeData,
+    loadPerfMetricsSummary,
     getUserData,
     refresh,
     handleSearchConfirm,
@@ -342,5 +375,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     navigate,
     t,
     isMobile,
+    perfMetricsSummary,
+    perfMetricsLoading,
   };
 };

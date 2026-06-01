@@ -169,6 +169,58 @@ const SubscriptionPlansCard = ({
     }
   };
 
+  const payBalance = async () => {
+    if (selectedPlan?.plan?.allow_balance_pay === false) {
+      showError(t('该套餐未开启余额支付'));
+      return;
+    }
+    setPaying(true);
+    try {
+      const res = await API.post('/api/subscription/balance/pay', {
+        plan_id: selectedPlan.plan.id,
+      });
+      if (res.data?.success) {
+        showSuccess(t('订阅购买成功'));
+        closeBuy();
+        await reloadSubscriptionSelf?.();
+      } else {
+        showError(res.data?.message || t('支付失败'));
+      }
+    } catch (e) {
+      showError(t('支付请求失败'));
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const payWaffoPancake = async () => {
+    if (!selectedPlan?.plan?.waffo_pancake_product_id) {
+      showError(t('该套餐未配置 Waffo Pancake'));
+      return;
+    }
+    setPaying(true);
+    try {
+      const res = await API.post('/api/subscription/waffo-pancake/pay', {
+        plan_id: selectedPlan.plan.id,
+      });
+      if (res.data?.message === 'success') {
+        window.open(res.data.data?.checkout_url, '_blank');
+        showSuccess(t('已打开支付页面'));
+        closeBuy();
+      } else {
+        const errorMsg =
+          typeof res.data?.data === 'string'
+            ? res.data.data
+            : res.data?.message || t('支付失败');
+        showError(errorMsg);
+      }
+    } catch (e) {
+      showError(t('支付请求失败'));
+    } finally {
+      setPaying(false);
+    }
+  };
+
   const payEpay = async () => {
     if (!selectedEpayMethod) {
       showError(t('请选择支付方式'));
@@ -684,6 +736,8 @@ const SubscriptionPlansCard = ({
         onPayStripe={payStripe}
         onPayCreem={payCreem}
         onPayEpay={payEpay}
+        onPayBalance={payBalance}
+        onPayWaffoPancake={payWaffoPancake}
       />
     </>
   );

@@ -29,11 +29,15 @@ func GetTheme() string {
 }
 
 // SetTheme updates the frontend theme atomically.
-// Only "default" and "classic" are accepted; other values are silently ignored.
+// The runtime frontend is fixed to classic; unsupported values are ignored.
 func SetTheme(t string) {
-	if t == "default" || t == "classic" {
+	if t == "classic" {
 		themeValue.Store(t)
 	}
+}
+
+func ThemeAwarePath(suffix string) string {
+	return suffix
 }
 
 // var ChatLink = ""

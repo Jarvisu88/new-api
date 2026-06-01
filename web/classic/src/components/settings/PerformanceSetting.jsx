@@ -20,7 +20,12 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useEffect, useState } from 'react';
 import { Card, Spin } from '@douyinfe/semi-ui';
 import SettingsPerformance from '../../pages/Setting/Performance/SettingsPerformance';
-import { API, showError, toBoolean } from '../../helpers';
+import {
+  API,
+  DEFAULT_PERF_METRICS_SETTING,
+  showError,
+  toBoolean,
+} from '../../helpers';
 
 const PerformanceSetting = () => {
   let [inputs, setInputs] = useState({
@@ -28,6 +33,11 @@ const PerformanceSetting = () => {
     'performance_setting.disk_cache_threshold_mb': 10,
     'performance_setting.disk_cache_max_size_mb': 1024,
     'performance_setting.disk_cache_path': '',
+    'performance_setting.monitor_enabled': false,
+    'performance_setting.monitor_cpu_threshold': 90,
+    'performance_setting.monitor_memory_threshold': 90,
+    'performance_setting.monitor_disk_threshold': 95,
+    ...DEFAULT_PERF_METRICS_SETTING,
   });
 
   let [loading, setLoading] = useState(false);

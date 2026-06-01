@@ -37,9 +37,14 @@ import {
 import {
   stringToColor,
   calculateModelPrice,
+  formatLatencyMs,
   formatPriceInfo,
   formatDynamicPriceSummary,
+  formatSuccessRate,
+  formatTps,
+  getLatencyColor,
   getLobeHubIcon,
+  getSuccessRateColor,
 } from '../../../../../helpers';
 import PricingCardSkeleton from './PricingCardSkeleton';
 import { useMinimumLoadingTime } from '../../../../../hooks/common/useMinimumLoadingTime';
@@ -72,6 +77,7 @@ const PricingCardView = ({
   tokenUnit,
   displayPrice,
   showRatio,
+  showPerfMetrics = true,
   t,
   selectedRowKeys = [],
   setSelectedRowKeys,
@@ -94,6 +100,39 @@ const PricingCardView = ({
       : selectedRowKeys.filter((key) => key !== modelKey);
     setSelectedRowKeys(newKeys);
     rowSelection?.onChange?.(newKeys, null);
+  };
+
+  const renderPerfMetrics = (metrics) => {
+    if (!showPerfMetrics || !metrics) {
+      return null;
+    }
+    return (
+      <div className='flex flex-wrap items-center gap-1 mb-3'>
+        <Tooltip content={t('平均延迟')}>
+          <Tag
+            color={getLatencyColor(metrics.avg_latency_ms)}
+            shape='circle'
+            size='small'
+          >
+            {formatLatencyMs(metrics.avg_latency_ms)}
+          </Tag>
+        </Tooltip>
+        <Tooltip content={t('成功率')}>
+          <Tag
+            color={getSuccessRateColor(metrics.success_rate)}
+            shape='circle'
+            size='small'
+          >
+            {formatSuccessRate(metrics.success_rate)}
+          </Tag>
+        </Tooltip>
+        <Tooltip content={t('平均吞吐')}>
+          <Tag color='blue' shape='circle' size='small'>
+            {formatTps(metrics.avg_tps)}
+          </Tag>
+        </Tooltip>
+      </div>
+    );
   };
 
   // 获取模型图标
@@ -315,6 +354,7 @@ const PricingCardView = ({
 
                 {/* 底部区域 */}
                 <div className='mt-auto'>
+                  {renderPerfMetrics(model.perf_metrics)}
                   {/* 标签区域 */}
                   {renderTags(model)}
 

@@ -18,14 +18,14 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useState } from 'react';
-import { Card, Spin, Tabs } from '@douyinfe/semi-ui';
+import { Banner, Button, Card, Space, Spin, Tabs, Typography } from '@douyinfe/semi-ui';
 import SettingsGeneralPayment from '../../pages/Setting/Payment/SettingsGeneralPayment';
 import SettingsPaymentGateway from '../../pages/Setting/Payment/SettingsPaymentGateway';
 import SettingsPaymentGatewayStripe from '../../pages/Setting/Payment/SettingsPaymentGatewayStripe';
 import SettingsPaymentGatewayCreem from '../../pages/Setting/Payment/SettingsPaymentGatewayCreem';
 import SettingsPaymentGatewayWaffo from '../../pages/Setting/Payment/SettingsPaymentGatewayWaffo';
 import SettingsPaymentGatewayWaffoPancake from '../../pages/Setting/Payment/SettingsPaymentGatewayWaffoPancake';
-import { API, showError, toBoolean } from '../../helpers';
+import { API, showError, showSuccess, toBoolean } from '../../helpers';
 import { useTranslation } from 'react-i18next';
 
 const PaymentSetting = () => {
@@ -50,16 +50,19 @@ const PaymentSetting = () => {
     StripeMinTopUp: 1,
     StripePromotionCodesEnabled: false,
 
-    WaffoPancakeEnabled: false,
-    WaffoPancakeSandbox: false,
     WaffoPancakeMerchantID: '',
     WaffoPancakePrivateKey: '',
     WaffoPancakeStoreID: '',
     WaffoPancakeProductID: '',
     WaffoPancakeReturnURL: '',
-    WaffoPancakeCurrency: 'USD',
     WaffoPancakeUnitPrice: 1.0,
     WaffoPancakeMinTopUp: 1,
+
+    PaymentComplianceConfirmed: false,
+    PaymentComplianceTermsVersion: '',
+    PaymentComplianceConfirmedAt: 0,
+    PaymentComplianceConfirmedBy: 0,
+    PaymentComplianceConfirmedIP: '',
   });
 
   let [loading, setLoading] = useState(false);
@@ -117,11 +120,22 @@ const PaymentSetting = () => {
           case 'WaffoPancakeStoreID':
           case 'WaffoPancakeProductID':
           case 'WaffoPancakeReturnURL':
-          case 'WaffoPancakeCurrency':
             newInputs[item.key] = item.value;
             break;
-          case 'WaffoPancakeSandbox':
-            newInputs[item.key] = toBoolean(item.value);
+          case 'payment_setting.compliance_confirmed':
+            newInputs.PaymentComplianceConfirmed = toBoolean(item.value);
+            break;
+          case 'payment_setting.compliance_terms_version':
+            newInputs.PaymentComplianceTermsVersion = item.value;
+            break;
+          case 'payment_setting.compliance_confirmed_at':
+            newInputs.PaymentComplianceConfirmedAt = parseInt(item.value || '0', 10);
+            break;
+          case 'payment_setting.compliance_confirmed_by':
+            newInputs.PaymentComplianceConfirmedBy = parseInt(item.value || '0', 10);
+            break;
+          case 'payment_setting.compliance_confirmed_ip':
+            newInputs.PaymentComplianceConfirmedIP = item.value;
             break;
           default:
             if (item.key.endsWith('Enabled')) {
@@ -136,6 +150,25 @@ const PaymentSetting = () => {
       setInputs((prev) => ({ ...prev, ...newInputs }));
     } else {
       showError(t(message));
+    }
+  };
+
+  const confirmPaymentCompliance = async () => {
+    setLoading(true);
+    try {
+      const res = await API.post('/api/option/payment_compliance', {
+        confirmed: true,
+      });
+      if (res.data?.success) {
+        showSuccess(t('合规声明已确认'));
+        await onRefresh();
+      } else {
+        showError(res.data?.message || t('确认失败'));
+      }
+    } catch (error) {
+      showError(t('确认失败'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -158,6 +191,28 @@ const PaymentSetting = () => {
     <>
       <Spin spinning={loading} size='large'>
         <Card style={{ marginTop: '10px' }}>
+          {!inputs.PaymentComplianceConfirmed && (
+            <Banner
+              type='warning'
+              closeIcon={null}
+              style={{ marginBottom: 16 }}
+              title={t('请先确认支付合规声明')}
+              description={
+                <Space vertical align='start'>
+                  <Typography.Text>
+                    {t('确认后才会启用充值、订阅购买和支付网关配置。')}
+                  </Typography.Text>
+                  <Button
+                    type='warning'
+                    theme='solid'
+                    onClick={confirmPaymentCompliance}
+                  >
+                    {t('确认支付合规声明')}
+                  </Button>
+                </Space>
+              }
+            />
+          )}
           <Tabs
             type='card'
             defaultActiveKey='general'
@@ -198,13 +253,13 @@ const PaymentSetting = () => {
                 hideSectionTitle
               />
             </Tabs.TabPane>
-            {/*<Tabs.TabPane tab={t('Waffo Pancake 设置')} itemKey='waffo-pancake'>*/}
-            {/*  <SettingsPaymentGatewayWaffoPancake*/}
-            {/*    options={inputs}*/}
-            {/*    refresh={onRefresh}*/}
-            {/*    hideSectionTitle*/}
-            {/*  />*/}
-            {/*</Tabs.TabPane>*/}
+            <Tabs.TabPane tab={t('Waffo Pancake 设置')} itemKey='waffo-pancake'>
+              <SettingsPaymentGatewayWaffoPancake
+                options={inputs}
+                refresh={onRefresh}
+                hideSectionTitle
+              />
+            </Tabs.TabPane>
           </Tabs>
         </Card>
       </Spin>

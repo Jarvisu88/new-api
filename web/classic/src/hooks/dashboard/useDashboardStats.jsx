@@ -29,7 +29,12 @@ import {
   IconTypograph,
   IconSend,
 } from '@douyinfe/semi-icons';
-import { renderQuota } from '../../helpers';
+import {
+  formatLatencyMs,
+  formatSuccessRate,
+  formatTps,
+  renderQuota,
+} from '../../helpers';
 import { createSectionTitle } from '../../helpers/dashboard';
 
 export const useDashboardStats = (
@@ -39,6 +44,7 @@ export const useDashboardStats = (
   times,
   trendData,
   performanceMetrics,
+  perfMetricsSummary,
   navigate,
   t,
 ) => {
@@ -111,7 +117,7 @@ export const useDashboardStats = (
         ],
       },
       {
-        title: createSectionTitle(Gauge, t('性能指标')),
+        title: createSectionTitle(Gauge, t('用量性能')),
         color: 'bg-indigo-50',
         items: [
           {
@@ -132,6 +138,44 @@ export const useDashboardStats = (
           },
         ],
       },
+      {
+        title: createSectionTitle(Gauge, t('模型性能')),
+        color: 'bg-cyan-50',
+        items: [
+          {
+            title: t('平均延迟'),
+            value: formatLatencyMs(perfMetricsSummary?.avgLatencyMs),
+            icon: <IconStopwatchStroked />,
+            avatarColor: 'cyan',
+            trendData: [],
+            trendColor: '#0891b2',
+          },
+          {
+            title: t('成功率'),
+            value: formatSuccessRate(perfMetricsSummary?.avgSuccessRate),
+            icon: <IconPulse />,
+            avatarColor: 'green',
+            trendData: [],
+            trendColor: '#10b981',
+          },
+          {
+            title: t('平均吞吐'),
+            value: formatTps(perfMetricsSummary?.avgTps),
+            icon: <IconTypograph />,
+            avatarColor: 'orange',
+            trendData: [],
+            trendColor: '#f97316',
+          },
+          {
+            title: t('覆盖模型'),
+            value: perfMetricsSummary?.modelCount || 0,
+            icon: <IconHistogram />,
+            avatarColor: 'blue',
+            trendData: [],
+            trendColor: '#3b82f6',
+          },
+        ],
+      },
     ],
     [
       userState?.user?.quota,
@@ -142,6 +186,7 @@ export const useDashboardStats = (
       consumeTokens,
       trendData,
       performanceMetrics,
+      perfMetricsSummary,
       navigate,
       t,
     ],
