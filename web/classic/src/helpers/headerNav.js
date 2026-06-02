@@ -9,6 +9,7 @@ export const HEADER_NAV_DEFAULT = {
     enabled: true,
     requireAuth: false,
   },
+  status: true,
   docs: true,
   about: true,
 };

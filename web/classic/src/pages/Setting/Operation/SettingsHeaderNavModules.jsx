@@ -162,6 +162,11 @@ export default function SettingsHeaderNavModules(props) {
       hasSubConfig: true,
     },
     {
+      key: 'status',
+      title: t('状态页'),
+      description: t('公开展示服务状态与事件更新'),
+    },
+    {
       key: 'docs',
       title: t('文档'),
       description: t('系统文档和帮助信息'),

@@ -372,6 +372,42 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "console_setting.status_page_domain":
+		err = console_setting.ValidateConsoleSettings(option.Value.(string), "StatusPageDomain")
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+	case "console_setting.status_page_title":
+		err = console_setting.ValidateConsoleSettings(option.Value.(string), "StatusPageTitle")
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+	case "console_setting.status_page_description":
+		err = console_setting.ValidateConsoleSettings(option.Value.(string), "StatusPageDescription")
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+	case "console_setting.status_page_timezone":
+		err = console_setting.ValidateConsoleSettings(option.Value.(string), "StatusPageTimezone")
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
 	}
 	err = model.UpdateOption(option.Key, option.Value.(string))
 	if err != nil {

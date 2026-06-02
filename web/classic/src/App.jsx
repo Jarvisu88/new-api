@@ -57,6 +57,7 @@ import ModelPage from './pages/Model';
 import ModelDeploymentPage from './pages/ModelDeployment';
 import Playground from './pages/Playground';
 import Subscription from './pages/Subscription';
+import StatusPage from './pages/StatusPage';
 import OAuth2Callback from './components/auth/OAuth2Callback';
 import PersonalSetting from './components/settings/PersonalSetting';
 import Setup from './pages/Setup';
@@ -376,6 +377,14 @@ function App() {
                 <Rankings />
               </Suspense>
             )
+          }
+        />
+        <Route
+          path='/status'
+          element={
+            <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+              <StatusPage />
+            </Suspense>
           }
         />
         <Route

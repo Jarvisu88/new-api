@@ -39,16 +39,36 @@ import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
 import { useLocation } from 'react-router-dom';
 import { normalizeLanguage } from '../../i18n/language';
+import StatusPage from '../../pages/StatusPage';
 const { Sider, Content, Header } = Layout;
+
+const stripHostPort = (host) => {
+  const value = String(host || '').trim();
+  if (!value) return '';
+  if (value.startsWith('[') && value.includes(']')) {
+    return value.slice(1, value.indexOf(']'));
+  }
+  return value.split(':')[0];
+};
 
 const PageLayout = () => {
   const [userState, userDispatch] = useContext(UserContext);
-  const [, statusDispatch] = useContext(StatusContext);
+  const [statusState, statusDispatch] = useContext(StatusContext);
   const isMobile = useIsMobile();
   const [collapsed, , setCollapsed] = useSidebarCollapsed();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { i18n } = useTranslation();
   const location = useLocation();
+  const statusPageConfig = statusState?.status?.console_setting || {};
+  const isStatusPageRoute = location.pathname === '/status';
+  const configuredStatusHost = stripHostPort(statusPageConfig.status_page_domain);
+  const currentHost =
+    typeof window !== 'undefined' ? stripHostPort(window.location.host) : '';
+  const isStatusPageHost =
+    statusPageConfig.status_page_enabled &&
+    configuredStatusHost &&
+    currentHost &&
+    configuredStatusHost.toLowerCase() === currentHost.toLowerCase();
 
   const cardProPages = [
     '/console/channel',
@@ -144,6 +164,15 @@ const PageLayout = () => {
       }
     }
   }, [i18n, userState?.user?.setting]);
+
+  if (isStatusPageRoute || isStatusPageHost) {
+    return (
+      <ErrorBoundary>
+        <StatusPage />
+        <ToastContainer />
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <Layout

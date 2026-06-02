@@ -20,7 +20,12 @@ For commercial licensing, please contact support@quantumnous.com
 import { useMemo } from 'react';
 import { HEADER_NAV_DEFAULT, isHeaderNavModuleEnabled } from '../../helpers';
 
-export const useNavigation = (t, docsLink, headerNavModules) => {
+export const useNavigation = (
+  t,
+  docsLink,
+  headerNavModules,
+  statusPageEnabled,
+) => {
   const mainNavLinks = useMemo(() => {
     // 使用传入的配置或默认配置
     const modules = headerNavModules || HEADER_NAV_DEFAULT;
@@ -46,6 +51,15 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         itemKey: 'rankings',
         to: '/rankings',
       },
+      ...(statusPageEnabled
+        ? [
+            {
+              text: t('状态页'),
+              itemKey: 'status',
+              to: '/status',
+            },
+          ]
+        : []),
       ...(docsLink
         ? [
             {
@@ -71,9 +85,12 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
       if (link.itemKey === 'pricing' || link.itemKey === 'rankings') {
         return isHeaderNavModuleEnabled(modules, link.itemKey);
       }
+      if (link.itemKey === 'status') {
+        return statusPageEnabled && isHeaderNavModuleEnabled(modules, 'status');
+      }
       return modules[link.itemKey] === true;
     });
-  }, [t, docsLink, headerNavModules]);
+  }, [t, docsLink, headerNavModules, statusPageEnabled]);
 
   return {
     mainNavLinks,

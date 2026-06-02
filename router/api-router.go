@@ -21,6 +21,9 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/setup", controller.GetSetup)
 		apiRouter.POST("/setup", controller.PostSetup)
 		apiRouter.GET("/status", controller.GetStatus)
+		apiRouter.GET("/status-page/summary", controller.GetPublicStatusPageSummary)
+		apiRouter.GET("/status-page/incidents", controller.GetPublicStatusPageIncidents)
+		apiRouter.GET("/status-page/incidents/:id", controller.GetPublicStatusPageIncident)
 		apiRouter.GET("/uptime/status", controller.GetUptimeKumaStatus)
 		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
 		apiRouter.GET("/status/test", middleware.AdminAuth(), controller.TestStatus)
@@ -194,6 +197,22 @@ func SetApiRouter(router *gin.Engine) {
 			optionRoute.POST("/waffo-pancake/save", controller.SaveWaffoPancake)
 			optionRoute.POST("/waffo-pancake/subscription-product", controller.CreateWaffoPancakeSubscriptionProduct)
 			optionRoute.POST("/waffo-pancake/subscription-product-options", controller.ListWaffoPancakeSubscriptionProductOptions)
+		}
+		statusPageAdminRoute := apiRouter.Group("/status-page/admin")
+		statusPageAdminRoute.Use(middleware.AdminAuth())
+		{
+			statusPageAdminRoute.GET("/components", controller.AdminListStatusPageComponents)
+			statusPageAdminRoute.POST("/components", controller.AdminCreateStatusPageComponent)
+			statusPageAdminRoute.PUT("/components/:id", controller.AdminUpdateStatusPageComponent)
+			statusPageAdminRoute.DELETE("/components/:id", controller.AdminDeleteStatusPageComponent)
+			statusPageAdminRoute.POST("/components/reorder", controller.AdminReorderStatusPageComponents)
+			statusPageAdminRoute.GET("/model-options", controller.AdminGetStatusPageModelOptions)
+			statusPageAdminRoute.GET("/incidents", controller.AdminListStatusPageIncidents)
+			statusPageAdminRoute.POST("/incidents", controller.AdminCreateStatusPageIncident)
+			statusPageAdminRoute.PUT("/incidents/:id", controller.AdminUpdateStatusPageIncident)
+			statusPageAdminRoute.DELETE("/incidents/:id", controller.AdminDeleteStatusPageIncident)
+			statusPageAdminRoute.POST("/incidents/:id/updates", controller.AdminCreateStatusPageIncidentUpdate)
+			statusPageAdminRoute.POST("/incidents/:id/resolve", controller.AdminResolveStatusPageIncident)
 		}
 
 		// Custom OAuth provider management (root only)

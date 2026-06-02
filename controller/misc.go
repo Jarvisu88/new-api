@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -99,7 +98,13 @@ func GetStatus(c *gin.Context) {
 		"uptime_kuma_enabled":   cs.UptimeKumaEnabled,
 		"announcements_enabled": cs.AnnouncementsEnabled,
 		"faq_enabled":           cs.FAQEnabled,
-		"availability_enabled": cs.AvailabilityEnabled,
+		"availability_enabled":  cs.AvailabilityEnabled,
+		"console_setting": gin.H{
+			"status_page_enabled":  cs.StatusPageEnabled,
+			"status_page_domain":   cs.StatusPageDomain,
+			"status_page_title":    cs.StatusPageTitle,
+			"status_page_timezone": cs.StatusPageTimezone,
+		},
 
 		// 模块管理配置
 		"HeaderNavModules":    common.OptionMap["HeaderNavModules"],
@@ -186,16 +191,16 @@ func GetBanner(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data": gin.H{
-			"content":        common.OptionMap["BannerContent"],
-			"type":           common.OptionMap["BannerType"],
-			"dismissible":    common.OptionMap["BannerDismissible"],
-			"mode":           common.OptionMap["BannerMode"],
-			"preset":         common.OptionMap["BannerPreset"],
-			"colors":         common.OptionMap["BannerColors"],
-			"speed":          common.OptionMap["BannerSpeed"],
-			"visual_config":  common.OptionMap["BannerVisualConfig"],
-			"custom_css":     common.OptionMap["BannerCustomCSS"],
-			"font_color":     common.OptionMap["BannerFontColor"],
+			"content":       common.OptionMap["BannerContent"],
+			"type":          common.OptionMap["BannerType"],
+			"dismissible":   common.OptionMap["BannerDismissible"],
+			"mode":          common.OptionMap["BannerMode"],
+			"preset":        common.OptionMap["BannerPreset"],
+			"colors":        common.OptionMap["BannerColors"],
+			"speed":         common.OptionMap["BannerSpeed"],
+			"visual_config": common.OptionMap["BannerVisualConfig"],
+			"custom_css":    common.OptionMap["BannerCustomCSS"],
+			"font_color":    common.OptionMap["BannerFontColor"],
 		},
 	})
 	return
@@ -359,7 +364,7 @@ type PasswordResetRequest struct {
 
 func ResetPassword(c *gin.Context) {
 	var req PasswordResetRequest
-	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	err := common.DecodeJson(c.Request.Body, &req)
 	if req.Email == "" || req.Token == "" {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,

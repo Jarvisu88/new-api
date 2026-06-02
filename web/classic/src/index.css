@@ -258,6 +258,269 @@ code {
   }
 }
 
+/* ==================== 公开状态页 ==================== */
+.status-page-public {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-y: auto;
+  background: #faf9f5;
+  color: #141413;
+}
+
+.status-page-shell {
+  width: min(980px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 36px 0 48px;
+}
+
+.status-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-end;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #dedcd1;
+}
+
+.status-page-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-weight: 600;
+  color: #141413;
+}
+
+.status-page-brand-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dedcd1;
+  border-radius: 6px;
+  background: #f3f1e8;
+}
+
+.status-page-title.semi-typography {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.18;
+  letter-spacing: 0;
+  color: #141413;
+}
+
+.status-page-description.semi-typography {
+  display: block;
+  max-width: 680px;
+  margin-top: 10px;
+  color: #686761;
+  line-height: 1.65;
+}
+
+.status-page-updated {
+  white-space: nowrap;
+}
+
+.status-page-overall {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 28px 0;
+  padding: 16px;
+  border: 1px solid;
+  border-radius: 8px;
+}
+
+.status-page-overall-desc {
+  margin-top: 4px;
+  color: #686761;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.status-page-section {
+  margin-top: 30px;
+}
+
+.status-page-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.status-page-section-title .semi-typography {
+  margin: 0;
+}
+
+.status-page-empty {
+  padding: 28px 16px;
+  border: 1px solid #dedcd1;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.status-page-component-list,
+.status-page-incidents,
+.status-page-incident-day,
+.status-page-incident-updates {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-page-component,
+.status-page-incident {
+  padding: 16px;
+  border: 1px solid #dedcd1;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(20, 20, 19, 0.03);
+}
+
+.status-page-component-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.status-page-component-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  word-break: break-word;
+}
+
+.status-page-component-meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.status-page-uptime-grid {
+  display: grid;
+  grid-template-columns: repeat(90, minmax(0, 1fr));
+  gap: 2px;
+  height: 36px;
+  overflow: hidden;
+}
+
+.status-page-uptime-bar {
+  min-width: 0;
+  height: 36px;
+  border-radius: 2px;
+}
+
+.status-page-uptime-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: #87867f;
+  font-size: 11px;
+}
+
+.status-page-incident-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-page-incident-update {
+  padding-top: 12px;
+  border-top: 1px solid #dedcd1;
+}
+
+.status-page-incident-update:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.status-page-incident-update p {
+  margin: 0 0 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.status-page-loading {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #87867f;
+}
+
+.status-admin-field {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 6px;
+  background: var(--semi-color-bg-1);
+}
+
+.status-admin-actions {
+  margin-top: 16px;
+}
+
+.status-admin-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.status-admin-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .status-page-shell {
+    width: min(100% - 24px, 980px);
+    padding: 24px 0 36px;
+  }
+
+  .status-page-header,
+  .status-page-component-main,
+  .status-admin-table-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status-page-updated {
+    white-space: normal;
+  }
+
+  .status-page-title.semi-typography {
+    font-size: 28px;
+  }
+
+  .status-page-uptime-grid {
+    grid-template-columns: repeat(30, minmax(0, 1fr));
+  }
+
+  .status-page-uptime-bar:nth-child(-n + 60) {
+    display: none;
+  }
+
+  .status-page-component-meta {
+    justify-content: space-between;
+  }
+}
+
 /* ==================== 聊天界面样式 ==================== */
 .semi-chat {
   padding-top: 0 !important;

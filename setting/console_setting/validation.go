@@ -1,13 +1,15 @@
 package console_setting
 
 import (
-	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/QuantumNous/new-api/common"
 )
 
 var (
@@ -20,11 +22,12 @@ var (
 		"violet": true, "grey": true,
 	}
 	slugRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+	hostRegex = regexp.MustCompile(`^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$|^\[(?:[0-9a-fA-F:]+)\]$|^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`)
 )
 
 func parseJSONArray(jsonStr string, typeName string) ([]map[string]interface{}, error) {
 	var list []map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStr), &list); err != nil {
+	if err := common.UnmarshalJsonStr(jsonStr, &list); err != nil {
 		return nil, fmt.Errorf("%s格式错误：%s", typeName, err.Error())
 	}
 	return list, nil
@@ -55,7 +58,7 @@ func getJSONList(jsonStr string) []map[string]interface{} {
 		return []map[string]interface{}{}
 	}
 	var list []map[string]interface{}
-	json.Unmarshal([]byte(jsonStr), &list)
+	common.UnmarshalJsonStr(jsonStr, &list)
 	return list
 }
 
@@ -75,6 +78,14 @@ func ValidateConsoleSettings(settingsStr string, settingType string) error {
 		return validateUptimeKumaGroups(settingsStr)
 	case "AvailabilityHiddenChannels":
 		return validateAvailabilityHiddenChannels(settingsStr)
+	case "StatusPageDomain":
+		return validateStatusPageDomain(settingsStr)
+	case "StatusPageTitle":
+		return validateStatusPageTitle(settingsStr)
+	case "StatusPageDescription":
+		return validateStatusPageDescription(settingsStr)
+	case "StatusPageTimezone":
+		return validateStatusPageTimezone(settingsStr)
 	default:
 		return fmt.Errorf("未知的设置类型：%s", settingType)
 	}
@@ -307,17 +318,78 @@ func GetUptimeKumaGroups() []map[string]interface{} {
 
 func GetAvailabilityHiddenChannels() []int {
 	var channels []int
-	json.Unmarshal([]byte(GetConsoleSetting().AvailabilityHiddenChannels), &channels)
+	common.UnmarshalJsonStr(GetConsoleSetting().AvailabilityHiddenChannels, &channels)
 	return channels
 }
 
 func validateAvailabilityHiddenChannels(channelsStr string) error {
 	var channels []int
-	if err := json.Unmarshal([]byte(channelsStr), &channels); err != nil {
+	if err := common.UnmarshalJsonStr(channelsStr, &channels); err != nil {
 		return fmt.Errorf("隐藏渠道格式错误：%s", err.Error())
 	}
 	if len(channels) > 100 {
 		return fmt.Errorf("隐藏渠道数量不能超过100个")
+	}
+	return nil
+}
+
+func validateStatusPageDomain(domain string) error {
+	domain = strings.TrimSpace(domain)
+	if domain == "" {
+		return nil
+	}
+	if strings.Contains(domain, "://") || strings.ContainsAny(domain, "/?# ") {
+		return fmt.Errorf("状态页域名只能填写 host，不能包含协议、路径或查询参数")
+	}
+	host := domain
+	if strings.HasPrefix(domain, "[") {
+		if strings.Contains(domain, "]:") {
+			h, _, err := net.SplitHostPort(domain)
+			if err != nil {
+				return fmt.Errorf("状态页域名格式不正确")
+			}
+			host = h
+		}
+	} else if strings.Count(domain, ":") == 1 {
+		h, port, found := strings.Cut(domain, ":")
+		if !found || h == "" || port == "" {
+			return fmt.Errorf("状态页域名格式不正确")
+		}
+		host = h
+	}
+	if strings.Contains(host, ":") && !(strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]")) {
+		return fmt.Errorf("状态页域名格式不正确")
+	}
+	if !hostRegex.MatchString(host) {
+		return fmt.Errorf("状态页域名格式不正确")
+	}
+	if len(domain) > 253 {
+		return fmt.Errorf("状态页域名不能超过253字符")
+	}
+	return nil
+}
+
+func validateStatusPageTitle(title string) error {
+	if len(strings.TrimSpace(title)) > 100 {
+		return fmt.Errorf("状态页标题不能超过100字符")
+	}
+	return nil
+}
+
+func validateStatusPageDescription(description string) error {
+	if len(strings.TrimSpace(description)) > 300 {
+		return fmt.Errorf("状态页描述不能超过300字符")
+	}
+	return nil
+}
+
+func validateStatusPageTimezone(timezone string) error {
+	timezone = strings.TrimSpace(timezone)
+	if timezone == "" {
+		return nil
+	}
+	if _, err := time.LoadLocation(timezone); err != nil {
+		return fmt.Errorf("状态页时区不合法")
 	}
 	return nil
 }

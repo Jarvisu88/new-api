@@ -25,6 +25,7 @@ import SettingsAnnouncements from '../../pages/Setting/Dashboard/SettingsAnnounc
 import SettingsFAQ from '../../pages/Setting/Dashboard/SettingsFAQ';
 import SettingsUptimeKuma from '../../pages/Setting/Dashboard/SettingsUptimeKuma';
 import SettingsDataDashboard from '../../pages/Setting/Dashboard/SettingsDataDashboard';
+import SettingsStatusPage from '../../pages/Setting/Dashboard/SettingsStatusPage';
 
 const DashboardSetting = () => {
   let [inputs, setInputs] = useState({
@@ -36,6 +37,11 @@ const DashboardSetting = () => {
     'console_setting.announcements_enabled': '',
     'console_setting.faq_enabled': '',
     'console_setting.uptime_kuma_enabled': '',
+    'console_setting.status_page_enabled': '',
+    'console_setting.status_page_domain': '',
+    'console_setting.status_page_title': '',
+    'console_setting.status_page_description': '',
+    'console_setting.status_page_timezone': '',
 
     // 用于迁移检测的旧键，下个版本会删除
     ApiInfo: '',
@@ -164,6 +170,11 @@ const DashboardSetting = () => {
         {/* Uptime Kuma 监控设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsUptimeKuma options={inputs} refresh={onRefresh} />
+        </Card>
+
+        {/* 公开状态页设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsStatusPage options={inputs} refresh={onRefresh} />
         </Card>
       </Spin>
     </>

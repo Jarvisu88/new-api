@@ -41,8 +41,51 @@ func GetAllEnableAbilityWithChannels() ([]AbilityWithChannel, error) {
 func GetGroupEnabledModels(group string) []string {
 	var models []string
 	// Find distinct models
-	DB.Table("abilities").Where(commonGroupCol+" = ? and enabled = ?", group, true).Distinct("model").Pluck("model", &models)
+	DB.Model(&Ability{}).Where(&Ability{Group: group, Enabled: true}).Distinct("model").Pluck("model", &models)
 	return models
+}
+
+func GetStatusPageProbeChannels(group string, modelName string, limit int) ([]*Channel, error) {
+	group = strings.TrimSpace(group)
+	modelName = strings.TrimSpace(modelName)
+	if group == "" || modelName == "" {
+		return []*Channel{}, nil
+	}
+	if limit <= 0 {
+		limit = 3
+	}
+	var abilities []Ability
+	if err := DB.Where(&Ability{Group: group, Model: modelName, Enabled: true}).
+		Order("priority DESC, weight DESC, channel_id ASC").
+		Limit(limit).
+		Find(&abilities).Error; err != nil {
+		return nil, err
+	}
+	if len(abilities) == 0 {
+		return []*Channel{}, nil
+	}
+	channelIds := make([]int, 0, len(abilities))
+	for _, ability := range abilities {
+		channelIds = append(channelIds, ability.ChannelId)
+	}
+	var channels []*Channel
+	err := DB.Where("id IN ?", channelIds).
+		Where("status <> ?", common.ChannelStatusManuallyDisabled).
+		Find(&channels).Error
+	if err != nil {
+		return nil, err
+	}
+	channelsById := make(map[int]*Channel, len(channels))
+	for _, channel := range channels {
+		channelsById[channel.Id] = channel
+	}
+	ordered := make([]*Channel, 0, len(channels))
+	for _, channelId := range channelIds {
+		if channel, ok := channelsById[channelId]; ok {
+			ordered = append(ordered, channel)
+		}
+	}
+	return ordered, nil
 }
 
 func GetEnabledModels() []string {
